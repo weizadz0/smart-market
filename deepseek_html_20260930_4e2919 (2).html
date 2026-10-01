@@ -1,0 +1,2632 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Smart Market | السوق الذكي</title>
+<style>
+/* ============ BASE ============ */
+*{box-sizing:border-box}
+html,body{height:100%}
+body{
+  margin:0;
+  font-family:"Segoe UI",Tahoma,system-ui,-apple-system,"Noto Sans Arabic",sans-serif;
+  background:#070b14;color:#e8eefc;min-height:100vh;overflow-x:hidden;
+}
+:root{
+  --stroke:rgba(255,255,255,.12);
+  --muted:#93a2c4;
+  --pri:#22d3ee;--pri2:#a855f7;--ok:#34d399;--danger:#f87171;--warn:#fbbf24;
+}
+/* ============ ANIMATED BACKGROUND ============ */
+.bg{position:fixed;inset:0;z-index:0;overflow:hidden;pointer-events:none;
+  background:
+    radial-gradient(1200px 600px at 10% 0%,rgba(34,211,238,.18),transparent 60%),
+    radial-gradient(900px 500px at 90% 10%,rgba(168,85,247,.20),transparent 60%),
+    radial-gradient(800px 600px at 50% 100%,rgba(251,191,36,.12),transparent 60%),
+    #070b14;}
+.blob{position:absolute;border-radius:50%;filter:blur(70px);opacity:.45;animation:drift 22s ease-in-out infinite}
+.b1{width:420px;height:420px;background:#22d3ee;top:-120px;inset-inline-start:-80px}
+.b2{width:380px;height:380px;background:#a855f7;bottom:-120px;inset-inline-end:-60px;animation-delay:-7s}
+.b3{width:320px;height:320px;background:#f59e0b;top:40%;inset-inline-start:55%;animation-delay:-14s}
+@keyframes drift{
+  0%,100%{transform:translate(0,0) scale(1)}
+  33%{transform:translate(60px,-40px) scale(1.12)}
+  66%{transform:translate(-50px,50px) scale(.92)}
+}
+.grid-lines{position:absolute;inset:0;
+  background-image:linear-gradient(rgba(255,255,255,.045) 1px,transparent 1px),
+                   linear-gradient(90deg,rgba(255,255,255,.045) 1px,transparent 1px);
+  background-size:60px 60px;
+  -webkit-mask-image:radial-gradient(circle at 50% 40%,#000,transparent 75%);
+  mask-image:radial-gradient(circle at 50% 40%,#000,transparent 75%);
+  animation:pan 40s linear infinite}
+@keyframes pan{to{background-position:60px 60px}}
+
+/* ============ SCREENS ============ */
+.screen{display:none;position:relative;z-index:1}
+.screen.show{display:block}
+
+/* ============ LOGIN ============ */
+#loginScreen.show{display:flex;align-items:center;justify-content:center;min-height:100vh;padding:20px}
+.login-card{
+  width:100%;max-width:400px;padding:34px 28px;border-radius:22px;
+  background:linear-gradient(180deg,rgba(255,255,255,.09),rgba(255,255,255,.03));
+  border:1px solid var(--stroke);backdrop-filter:blur(16px);
+  box-shadow:0 24px 70px rgba(0,0,0,.55);text-align:center;
+  animation:pop .5s cubic-bezier(.2,.9,.3,1.3);
+}
+@keyframes pop{from{opacity:0;transform:translateY(24px) scale(.96)}to{opacity:1;transform:none}}
+.logo-badge{
+  width:74px;height:74px;margin:0 auto 14px;border-radius:22px;display:grid;place-items:center;
+  background:linear-gradient(135deg,#22d3ee,#a855f7);box-shadow:0 10px 30px rgba(34,211,238,.35);
+  animation:float 4s ease-in-out infinite;
+}
+@keyframes float{0%,100%{transform:translateY(0)}50%{transform:translateY(-8px)}}
+.logo-badge svg{width:38px;height:38px;fill:#04121f}
+.login-card h1{margin:0 0 4px;font-size:24px;letter-spacing:.3px}
+.login-card .sub{margin:0 0 22px;color:var(--muted);font-size:13px}
+.field{display:block;text-align:start;margin-bottom:14px}
+.field>span{display:block;font-size:12.5px;color:var(--muted);margin-bottom:6px;font-weight:600}
+input,select,textarea{
+  width:100%;padding:11px 13px;border-radius:12px;border:1px solid var(--stroke);
+  background:rgba(255,255,255,.05);color:#e8eefc;font:inherit;outline:none;transition:.2s;
+}
+input:focus,select:focus,textarea:focus{border-color:var(--pri);box-shadow:0 0 0 3px rgba(34,211,238,.16)}
+input::placeholder{color:#6b7a9c}
+select option{background:#0d1424;color:#e8eefc}
+input[readonly]{opacity:.85;cursor:default}
+.error{color:var(--danger);font-size:13px;min-height:18px;margin:2px 0 8px;font-weight:600}
+
+/* ============ BUTTONS ============ */
+.btn{
+  border:1px solid var(--stroke);background:rgba(255,255,255,.06);color:#e8eefc;
+  padding:11px 16px;border-radius:12px;cursor:pointer;font:inherit;font-weight:700;
+  transition:.18s;display:inline-flex;align-items:center;justify-content:center;gap:7px;
+}
+.btn:hover{background:rgba(255,255,255,.13);transform:translateY(-1px)}
+.btn:active{transform:translateY(0)}
+.btn.primary{background:linear-gradient(135deg,#22d3ee,#3b82f6);border:none;color:#04121f}
+.btn.ok{background:linear-gradient(135deg,#34d399,#10b981);border:none;color:#04241a}
+.btn.danger{background:linear-gradient(135deg,#f87171,#ef4444);border:none;color:#2a0606}
+.btn.warn{background:linear-gradient(135deg,#fbbf24,#f59e0b);border:none;color:#2a1a02}
+.btn.purple{background:linear-gradient(135deg,#a855f7,#8b5cf6);border:none;color:#fff}
+.btn.block{width:100%}
+.btn.sm{padding:8px 12px;font-size:13px;border-radius:10px}
+.btn.ghost{background:transparent}
+.icon-btn{
+  border:1px solid var(--stroke);background:rgba(255,255,255,.06);color:#e8eefc;
+  width:32px;height:32px;border-radius:9px;cursor:pointer;font-size:14px;line-height:1;
+  transition:.18s;display:inline-grid;place-items:center;
+}
+.icon-btn:hover{background:rgba(255,255,255,.16)}
+.icon-btn.danger:hover{background:rgba(248,113,113,.25);border-color:rgba(248,113,113,.5)}
+.icon-btn.on{background:linear-gradient(135deg,#22d3ee,#a855f7);color:#04121f;border:none}
+
+/* ============ APP LAYOUT ============ */
+.wrap{max-width:1280px;margin:0 auto;padding:18px}
+.topbar{
+  display:flex;align-items:center;justify-content:space-between;gap:14px;flex-wrap:wrap;
+  padding:14px 18px;border-radius:18px;border:1px solid var(--stroke);
+  background:linear-gradient(180deg,rgba(255,255,255,.08),rgba(255,255,255,.03));
+  backdrop-filter:blur(14px);margin-bottom:14px;
+}
+.brand{display:flex;align-items:center;gap:12px}
+.brand .logo-badge{width:44px;height:44px;border-radius:13px;margin:0;animation:none}
+.brand .logo-badge svg{width:23px;height:23px}
+.brand h2{margin:0;font-size:17px}
+.brand small{color:var(--muted);font-size:12px}
+.topbar .actions{display:flex;gap:9px;flex-wrap:wrap;align-items:center}
+
+.tabs{display:flex;gap:9px;margin-bottom:16px;flex-wrap:wrap}
+.tab{
+  border:1px solid var(--stroke);background:rgba(255,255,255,.05);color:var(--muted);
+  padding:11px 18px;border-radius:13px;cursor:pointer;font:inherit;font-weight:700;transition:.2s;
+  font-size:14px;
+}
+.tab:hover{color:#e8eefc;background:rgba(255,255,255,.1)}
+.tab.active{
+  background:linear-gradient(135deg,rgba(34,211,238,.25),rgba(168,85,247,.25));
+  color:#fff;border-color:rgba(34,211,238,.55);box-shadow:0 6px 22px rgba(34,211,238,.18);
+}
+.panel{display:none;animation:fade .3s ease}
+.panel.show{display:block}
+@keyframes fade{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:none}}
+
+/* ============ CARDS ============ */
+.card{
+  background:linear-gradient(180deg,rgba(255,255,255,.07),rgba(255,255,255,.028));
+  border:1px solid var(--stroke);border-radius:18px;padding:18px;
+  backdrop-filter:blur(14px);box-shadow:0 12px 40px rgba(0,0,0,.32);margin-bottom:16px;
+}
+.card-title{margin:0 0 14px;font-size:15.5px;display:flex;align-items:center;gap:8px}
+.card-title::before{content:"";width:4px;height:17px;border-radius:4px;background:linear-gradient(#22d3ee,#a855f7)}
+.panel-grid{display:grid;grid-template-columns:1fr 1fr;gap:16px;align-items:start}
+@media(max-width:900px){.panel-grid{grid-template-columns:1fr}}
+.form-grid{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+@media(max-width:560px){.form-grid{grid-template-columns:1fr}}
+.form-grid.three{grid-template-columns:1fr 1fr 1fr}
+@media(max-width:760px){.form-grid.three{grid-template-columns:1fr}}
+.form-grid .full{grid-column:1/-1}
+.row{display:flex;gap:10px;flex-wrap:wrap;align-items:center}
+.row.gap{margin-top:14px}
+.input-row{display:flex;gap:8px}
+.input-row input{flex:1}
+.empty{color:var(--muted);text-align:center;padding:22px 10px;font-size:13.5px}
+.hint{font-size:12px;color:var(--muted);margin-top:8px;line-height:1.6}
+
+/* ============ CHIPS ============ */
+.chips{display:flex;flex-wrap:wrap;gap:9px;margin-top:14px}
+.chip{
+  display:inline-flex;align-items:center;gap:8px;padding:8px 10px 8px 13px;border-radius:12px;
+  background:rgba(255,255,255,.06);border:1px solid var(--stroke);font-size:13px;font-weight:600;
+}
+.chip .code{
+  background:linear-gradient(135deg,#22d3ee,#a855f7);color:#04121f;font-size:11px;font-weight:800;
+  padding:3px 7px;border-radius:7px;letter-spacing:.4px;
+}
+
+/* ============ TABLES ============ */
+.table-wrap{overflow:auto;border-radius:14px;border:1px solid var(--stroke);max-height:460px}
+table{width:100%;border-collapse:collapse;font-size:13.5px}
+th{
+  background:rgba(255,255,255,.07);padding:12px;text-align:start;font-weight:700;
+  color:var(--muted);white-space:nowrap;position:sticky;top:0;backdrop-filter:blur(8px);z-index:2;
+}
+td{padding:10px 12px;border-top:1px solid rgba(255,255,255,.07);vertical-align:middle}
+tbody tr:hover td{background:rgba(255,255,255,.035)}
+td.actions{white-space:nowrap;display:flex;gap:6px}
+.badge{
+  display:inline-block;padding:3px 9px;border-radius:20px;font-size:11.5px;font-weight:700;
+  background:rgba(34,211,238,.16);color:#7ee8fa;border:1px solid rgba(34,211,238,.3);
+}
+.badge.warn{background:rgba(251,191,36,.16);color:#fcd34d;border-color:rgba(251,191,36,.3)}
+.badge.red{background:rgba(248,113,113,.16);color:#fca5a5;border-color:rgba(248,113,113,.3)}
+.badge.green{background:rgba(52,211,153,.16);color:#6ee7b7;border-color:rgba(52,211,153,.3)}
+.badge.purple{background:rgba(168,85,247,.16);color:#d8b4fe;border-color:rgba(168,85,247,.3)}
+.mono{font-family:"Consolas","Courier New",monospace;font-weight:700;letter-spacing:.5px}
+td input{padding:7px 9px;border-radius:9px;font-size:13px;text-align:center}
+td input[type=number]{width:82px}
+
+/* ============ INVOICE ============ */
+.invoice-total{
+  display:flex;justify-content:space-between;align-items:center;margin-top:14px;padding:14px 18px;
+  border-radius:14px;background:linear-gradient(135deg,rgba(34,211,238,.16),rgba(168,85,247,.16));
+  border:1px solid rgba(34,211,238,.3);font-weight:800;font-size:17px;
+}
+.total-num{color:#7ee8fa;font-size:22px}
+.preview-box{
+  padding:12px;border-radius:12px;background:rgba(255,255,255,.04);
+  border:1px dashed var(--stroke);margin-bottom:12px;transition:.25s;
+}
+.preview-box.ok{border-color:rgba(52,211,153,.55);background:rgba(52,211,153,.07)}
+.preview-box.bad{border-color:rgba(248,113,113,.55);background:rgba(248,113,113,.07)}
+
+/* ============ KPI CARDS ============ */
+.kpis{display:grid;grid-template-columns:repeat(auto-fit,minmax(170px,1fr));gap:12px;margin-bottom:16px}
+.kpi{
+  padding:16px;border-radius:16px;border:1px solid var(--stroke);
+  background:linear-gradient(180deg,rgba(255,255,255,.08),rgba(255,255,255,.025));
+  position:relative;overflow:hidden;
+}
+.kpi::after{content:"";position:absolute;inset-inline-end:-30px;top:-30px;width:90px;height:90px;border-radius:50%;background:rgba(34,211,238,.12)}
+.kpi .lbl{font-size:12px;color:var(--muted);font-weight:700;margin-bottom:6px}
+.kpi .val{font-size:22px;font-weight:800;color:#fff}
+.kpi .val.sm{font-size:16px}
+.kpi.g .val{color:#6ee7b7}.kpi.p .val{color:#d8b4fe}.kpi.y .val{color:#fcd34d}.kpi.r .val{color:#fca5a5}
+
+/* ============ LOG ============ */
+.log-item{
+  display:flex;gap:12px;align-items:flex-start;padding:11px 13px;border-radius:12px;
+  background:rgba(255,255,255,.035);border:1px solid var(--stroke);margin-bottom:8px;
+}
+.log-icon{width:34px;height:34px;border-radius:10px;display:grid;place-items:center;font-size:15px;flex:0 0 auto}
+.log-icon.sale{background:rgba(52,211,153,.18);color:#6ee7b7}
+.log-icon.prod{background:rgba(34,211,238,.18);color:#7ee8fa}
+.log-icon.cat{background:rgba(168,85,247,.18);color:#d8b4fe}
+.log-icon.sys{background:rgba(251,191,36,.18);color:#fcd34d}
+.log-icon.bak{background:rgba(59,130,246,.18);color:#93c5fd}
+.log-body{flex:1;min-width:0}
+.log-body .ttl{font-size:13.5px;font-weight:700}
+.log-body .meta{font-size:11.5px;color:var(--muted);margin-top:3px}
+.log-time{font-size:11.5px;color:var(--muted);white-space:nowrap}
+
+/* ============ TOAST ============ */
+.toast{
+  position:fixed;bottom:26px;left:50%;transform:translate(-50%,120px);
+  background:#0f1729;border:1px solid var(--stroke);color:#e8eefc;padding:13px 22px;border-radius:13px;
+  font-weight:700;font-size:14px;z-index:99999;opacity:0;transition:.35s cubic-bezier(.2,.9,.3,1.3);
+  box-shadow:0 14px 40px rgba(0,0,0,.6);pointer-events:none;max-width:90vw;text-align:center;
+}
+.toast.show{opacity:1;transform:translate(-50%,0)}
+.toast.ok{border-color:rgba(52,211,153,.6)}
+.toast.error{border-color:rgba(248,113,113,.6)}
+.toast.warn{border-color:rgba(251,191,36,.6)}
+
+/* ============ MODAL ============ */
+.modal-back{
+  position:fixed;inset:0;background:rgba(3,6,14,.72);backdrop-filter:blur(6px);
+  z-index:9000;display:none;align-items:flex-start;justify-content:center;padding:24px 16px;overflow:auto;
+}
+.modal-back.show{display:flex}
+.modal{
+  width:100%;max-width:620px;border-radius:20px;border:1px solid var(--stroke);
+  background:linear-gradient(180deg,#101828,#0a1120);
+  box-shadow:0 30px 80px rgba(0,0,0,.7);animation:pop .35s cubic-bezier(.2,.9,.3,1.3);
+  margin:auto;
+}
+.modal-head{display:flex;align-items:center;justify-content:space-between;padding:16px 20px;border-bottom:1px solid var(--stroke)}
+.modal-head h3{margin:0;font-size:16px}
+.modal-body{padding:18px 20px;max-height:70vh;overflow:auto}
+.modal-foot{padding:14px 20px;border-top:1px solid var(--stroke);display:flex;gap:10px;justify-content:flex-end;flex-wrap:wrap}
+.sec-title{font-size:12.5px;color:var(--muted);font-weight:800;text-transform:uppercase;letter-spacing:.6px;margin:18px 0 10px}
+.sec-title:first-child{margin-top:0}
+.path-box{
+  padding:11px 13px;border-radius:11px;background:rgba(255,255,255,.05);border:1px dashed var(--stroke);
+  font-family:Consolas,monospace;font-size:12.5px;word-break:break-all;color:#b8c6e6;
+}
+.switch{display:flex;align-items:center;gap:10px;cursor:pointer;user-select:none}
+.switch input{width:auto;margin:0}
+.range-row{display:flex;align-items:center;gap:12px}
+.range-row input[type=range]{flex:1}
+
+/* ============ REPORT PREVIEW ============ */
+.report-head{
+  display:flex;justify-content:space-between;align-items:flex-start;gap:14px;flex-wrap:wrap;margin-bottom:12px;
+}
+.report-title{font-size:17px;font-weight:800;margin:0}
+.report-sub{font-size:12.5px;color:var(--muted);margin-top:4px}
+.rep-table{width:100%;border-collapse:collapse;font-size:13px}
+.rep-table th,.rep-table td{border:1px solid rgba(255,255,255,.12);padding:9px 11px;text-align:start}
+.rep-table th{background:rgba(255,255,255,.08);color:#cfe0ff;font-weight:700;position:static}
+.rep-table tfoot td{font-weight:800;background:rgba(34,211,238,.10)}
+.rep-wrap{overflow:auto;border-radius:12px;border:1px solid var(--stroke);max-height:520px}
+
+/* ============ PRINT ============ */
+#printArea{display:none}
+@page{margin:12mm}
+@media print{
+  body{background:#fff !important;color:#000 !important}
+  body>*{display:none !important}
+  #printArea{display:block !important}
+  .receipt,.report-print{color:#000;font-family:"Segoe UI",Tahoma,sans-serif;max-width:100%;direction:inherit}
+  .receipt h2,.report-print h2{margin:0;font-size:22px}
+  .receipt .r-head,.report-print .r-head{text-align:center;margin-bottom:8px}
+  .receipt .r-head p,.report-print .r-head p{margin:3px 0 0;font-size:12px;color:#555}
+  .receipt .r-line{border-top:2px dashed #000;margin:10px 0}
+  .receipt .r-meta{display:flex;flex-wrap:wrap;gap:6px 26px;font-size:13px;margin-bottom:12px}
+  .receipt table,.report-print table{width:100%;border-collapse:collapse;font-size:12.5px}
+  .receipt th,.receipt td,.report-print th,.report-print td{border:1px solid #000;padding:6px 8px;text-align:start}
+  .receipt th,.report-print th{background:#eee !important;color:#000 !important;position:static}
+  .receipt .r-total{margin-top:12px;text-align:end;font-size:16px;font-weight:800;border-top:2px solid #000;padding-top:8px}
+  .receipt .r-thanks{text-align:center;margin-top:18px;font-size:13px;font-weight:700}
+  .receipt .r-foot,.report-print .r-foot{text-align:center;font-size:11px;color:#666;margin-top:6px}
+  .report-print .rp-meta{display:flex;flex-wrap:wrap;gap:6px 26px;font-size:12.5px;margin:10px 0 14px}
+  .report-print tfoot td{font-weight:800;background:#eee !important}
+  .report-print .rp-kpis{display:flex;gap:16px;flex-wrap:wrap;margin:12px 0}
+  .report-print .rp-kpi{border:1px solid #000;padding:8px 14px;border-radius:6px;font-size:12.5px}
+  .report-print .rp-kpi b{display:block;font-size:16px;margin-top:3px}
+}
+</style>
+</head>
+<body>
+
+<!-- ===== ANIMATED BACKGROUND ===== -->
+<div class="bg">
+  <div class="blob b1"></div>
+  <div class="blob b2"></div>
+  <div class="blob b3"></div>
+  <div class="grid-lines"></div>
+</div>
+
+<!-- ===== LOGIN SCREEN ===== -->
+<section id="loginScreen" class="screen show">
+  <div class="login-card">
+    <div class="logo-badge">
+      <svg viewBox="0 0 24 24"><path d="M7 18a2 2 0 1 0 0 4 2 2 0 0 0 0-4zm10 0a2 2 0 1 0 0 4 2 2 0 0 0 0-4zM6.2 6h14.3l-1.6 8.2a2 2 0 0 1-2 1.6H9.3a2 2 0 0 1-2-1.6L5.2 3.6A1 1 0 0 0 4.2 3H2v2h1.6l2.1 10.6A3 3 0 0 0 8.6 18h9.6v-2H8.6a1 1 0 0 1-1-.8L7.4 13h11.1l2-9H6.2z"/></svg>
+    </div>
+    <h1 data-i18n="appName">السوق الذكي</h1>
+    <p class="sub" data-i18n="loginSubtitle">سجّل الدخول للمتابعة</p>
+
+    <form id="loginForm" autocomplete="off">
+      <label class="field">
+        <span data-i18n="username">اسم المستخدم</span>
+        <input id="userInput" type="text" autocomplete="off" data-i18n-ph="usernamePh">
+      </label>
+      <label class="field">
+        <span data-i18n="password">كلمة المرور</span>
+        <input id="passInput" type="password" autocomplete="off" data-i18n-ph="passwordPh">
+      </label>
+      <div id="loginError" class="error"></div>
+      <button type="submit" class="btn primary block" data-i18n="login">تسجيل الدخول</button>
+    </form>
+
+    <div class="row" style="justify-content:center;margin-top:14px">
+      <button type="button" class="btn sm" id="langBtnLogin">EN</button>
+    </div>
+  </div>
+</section>
+
+<!-- ===== MAIN APP ===== -->
+<section id="app" class="screen">
+  <div class="wrap">
+
+    <!-- TOP BAR -->
+    <header class="topbar">
+      <div class="brand">
+        <div class="logo-badge">
+          <svg viewBox="0 0 24 24"><path d="M7 18a2 2 0 1 0 0 4 2 2 0 0 0 0-4zm10 0a2 2 0 1 0 0 4 2 2 0 0 0 0-4zM6.2 6h14.3l-1.6 8.2a2 2 0 0 1-2 1.6H9.3a2 2 0 0 1-2-1.6L5.2 3.6A1 1 0 0 0 4.2 3H2v2h1.6l2.1 10.6A3 3 0 0 0 8.6 18h9.6v-2H8.6a1 1 0 0 1-1-.8L7.4 13h11.1l2-9H6.2z"/></svg>
+        </div>
+        <div>
+          <h2 data-i18n="appName">السوق الذكي</h2>
+          <small data-i18n="tagline">نظام إدارة المنتجات والمبيعات</small>
+        </div>
+      </div>
+      <div class="actions">
+        <button class="icon-btn" id="musicBtn" title="Music">♪</button>
+        <button class="btn sm" id="langBtn">EN</button>
+        <button class="icon-btn" id="settingsBtn" title="Settings">⚙</button>
+        <button class="btn sm danger" id="logoutBtn" data-i18n="logout">خروج</button>
+      </div>
+    </header>
+
+    <!-- TABS -->
+    <nav class="tabs">
+      <button class="tab active" data-tab="products" data-i18n="tabProducts">المنتجات</button>
+      <button class="tab" data-tab="sales" data-i18n="tabSales">المبيعات</button>
+      <button class="tab" data-tab="history" data-i18n="tabHistory">سجل المبيعات</button>
+      <button class="tab" data-tab="reports" data-i18n="tabReports">التقارير</button>
+      <button class="tab" data-tab="log" data-i18n="tabLog">سجل النشاط</button>
+      <button class="tab" data-tab="backup" data-i18n="tabBackup">النسخ الاحتياطي</button>
+    </nav>
+
+    <!-- ========== PANEL: PRODUCTS ========== -->
+    <div class="panel show" id="panel-products">
+
+      <div class="panel-grid">
+        <div class="card">
+          <h3 class="card-title" data-i18n="categoriesTitle">الفئات</h3>
+          <div class="form-grid">
+            <label class="field">
+              <span data-i18n="catNameAr">اسم الفئة (عربي)</span>
+              <input id="catNameAr">
+            </label>
+            <label class="field">
+              <span data-i18n="catNameEn">اسم الفئة (إنجليزي)</span>
+              <input id="catNameEn">
+            </label>
+            <label class="field full">
+              <span data-i18n="catCode">رمز الفئة (بادئة الأكواد)</span>
+              <input id="catCode" placeholder="BEV">
+            </label>
+          </div>
+          <div class="row gap">
+            <button class="btn primary" id="catSaveBtn" data-i18n="addCategory">إضافة فئة</button>
+            <button class="btn" id="catCancelBtn" hidden data-i18n="cancel">إلغاء</button>
+          </div>
+          <div class="chips" id="catList"></div>
+        </div>
+
+        <div class="card">
+          <h3 class="card-title" data-i18n="productFormTitle">بيانات المنتج</h3>
+          <div class="form-grid">
+            <label class="field">
+              <span data-i18n="prodCode">رمز المنتج</span>
+              <div class="input-row">
+                <input id="pCode">
+                <button type="button" class="btn sm" id="autoCodeBtn" data-i18n="auto">توليد</button>
+              </div>
+            </label>
+            <label class="field">
+              <span data-i18n="category">الفئة</span>
+              <select id="pCat"></select>
+            </label>
+            <label class="field">
+              <span data-i18n="nameAr">الاسم (عربي)</span>
+              <input id="pNameAr">
+            </label>
+            <label class="field">
+              <span data-i18n="nameEn">الاسم (إنجليزي)</span>
+              <input id="pNameEn">
+            </label>
+            <label class="field">
+              <span data-i18n="price">السعر</span>
+              <input id="pPrice" type="number" step="0.01" min="0">
+            </label>
+            <label class="field">
+              <span data-i18n="stock">الكمية بالمخزن</span>
+              <input id="pStock" type="number" min="0" value="0">
+            </label>
+          </div>
+          <div class="row gap">
+            <button class="btn primary" id="pSaveBtn">إضافة منتج</button>
+            <button class="btn" id="pCancelBtn" hidden data-i18n="cancel">إلغاء</button>
+          </div>
+        </div>
+      </div>
+
+      <div class="card">
+        <h3 class="card-title" data-i18n="productsTitle">قائمة المنتجات</h3>
+        <div class="form-grid" style="margin-bottom:14px">
+          <label class="field" style="margin:0">
+            <input id="prodSearch" data-i18n-ph="searchPh">
+          </label>
+          <label class="field" style="margin:0">
+            <select id="prodFilter"></select>
+          </label>
+        </div>
+        <div class="table-wrap">
+          <table>
+            <thead>
+              <tr>
+                <th data-i18n="thCode">الرمز</th>
+                <th data-i18n="thName">الاسم</th>
+                <th data-i18n="thCategory">الفئة</th>
+                <th data-i18n="thPrice">السعر</th>
+                <th data-i18n="thStock">المخزن</th>
+                <th data-i18n="thActions">إجراءات</th>
+              </tr>
+            </thead>
+            <tbody id="prodBody"></tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+
+    <!-- ========== PANEL: SALES ========== -->
+    <div class="panel" id="panel-sales">
+      <div class="panel-grid">
+        <div class="card">
+          <h3 class="card-title" data-i18n="newSale">تسجيل عملية بيع</h3>
+          <label class="field">
+            <span data-i18n="prodCode">رمز المنتج</span>
+            <input id="saleCode" data-i18n-ph="saleCodePh" autocomplete="off">
+          </label>
+
+          <div class="preview-box" id="salePreview">
+            <div class="form-grid">
+              <label class="field" style="margin:0">
+                <span data-i18n="thName">اسم المنتج</span>
+                <input id="saleName" readonly>
+              </label>
+              <label class="field" style="margin:0">
+                <span data-i18n="thCategory">الفئة</span>
+                <input id="saleCat" readonly>
+              </label>
+              <label class="field" style="margin:0">
+                <span data-i18n="price">السعر</span>
+                <input id="salePrice" readonly>
+              </label>
+              <label class="field" style="margin:0">
+                <span data-i18n="saleDate">تاريخ البيع</span>
+                <input id="saleDate" type="date">
+              </label>
+            </div>
+          </div>
+
+          <div class="form-grid">
+            <label class="field">
+              <span data-i18n="qty">الكمية المباعة</span>
+              <input id="saleQty" type="number" min="1" value="1">
+            </label>
+            <label class="field" style="display:flex;align-items:flex-end">
+              <button class="btn ok block" id="addItemBtn" data-i18n="addItem">إضافة إلى الفاتورة</button>
+            </label>
+          </div>
+          <p class="hint" data-i18n="saleHint">أدخل رمز المنتج وسيتم تعبئة جميع البيانات تلقائيًا.</p>
+        </div>
+
+        <div class="card">
+          <h3 class="card-title" data-i18n="invoiceTitle">الفاتورة</h3>
+          <div class="form-grid" style="margin-bottom:12px">
+            <label class="field" style="margin:0">
+              <span data-i18n="invoiceNo">رقم الفاتورة</span>
+              <input id="invNo" readonly>
+            </label>
+            <label class="field" style="margin:0">
+              <span data-i18n="customer">اسم العميل</span>
+              <input id="invCustomer">
+            </label>
+            <label class="field full" style="margin:0">
+              <span data-i18n="phone">رقم الهاتف</span>
+              <input id="invPhone">
+            </label>
+          </div>
+
+          <div class="table-wrap" style="max-height:300px">
+            <table>
+              <thead>
+                <tr>
+                  <th>#</th>
+                  <th data-i18n="thCode">الرمز</th>
+                  <th data-i18n="thName">الاسم</th>
+                  <th data-i18n="qty">الكمية</th>
+                  <th data-i18n="price">السعر</th>
+                  <th data-i18n="thTotal">الإجمالي</th>
+                  <th></th>
+                </tr>
+              </thead>
+              <tbody id="invBody"></tbody>
+            </table>
+          </div>
+
+          <div class="invoice-total">
+            <span data-i18n="total">الإجمالي</span>
+            <span class="total-num" id="invTotal">0.00</span>
+          </div>
+
+          <div class="row gap">
+            <button class="btn ok" id="saveSaleBtn" data-i18n="save">حفظ</button>
+            <button class="btn primary" id="printBtn" data-i18n="print">طباعة الفاتورة</button>
+            <button class="btn" id="newInvBtn" data-i18n="newInvoice">فاتورة جديدة</button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ========== PANEL: HISTORY ========== -->
+    <div class="panel" id="panel-history">
+      <div class="card">
+        <h3 class="card-title" data-i18n="historyTitle">سجل المبيعات</h3>
+        <div class="table-wrap">
+          <table>
+            <thead>
+              <tr>
+                <th data-i18n="invoiceNo">رقم الفاتورة</th>
+                <th data-i18n="saleDate">التاريخ</th>
+                <th data-i18n="customer">العميل</th>
+                <th data-i18n="thItems">الأصناف</th>
+                <th data-i18n="total">الإجمالي</th>
+                <th data-i18n="thActions">إجراءات</th>
+              </tr>
+            </thead>
+            <tbody id="historyBody"></tbody>
+          </table>
+        </div>
+        <div class="row gap">
+          <button class="btn danger" id="clearHistoryBtn" data-i18n="clearHistory">مسح السجل</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- ========== PANEL: REPORTS ========== -->
+    <div class="panel" id="panel-reports">
+      <div class="card">
+        <h3 class="card-title" data-i18n="reportsTitle">التقارير الاحترافية</h3>
+
+        <div class="form-grid three">
+          <label class="field" style="margin:0">
+            <span data-i18n="reportType">نوع التقرير</span>
+            <select id="repType">
+              <option value="daily"   data-i18n="repDaily">تقرير المبيعات اليومي</option>
+              <option value="range"   data-i18n="repRange">مبيعات فترة زمنية</option>
+              <option value="category" data-i18n="repCategory">تقرير الفئات</option>
+              <option value="product" data-i18n="repProduct">أداء المنتجات</option>
+              <option value="customer" data-i18n="repCustomer">تقرير العملاء</option>
+              <option value="inventory" data-i18n="repInventory">تقرير المخزون</option>
+              <option value="profit"  data-i18n="repProfit">ملخص شامل</option>
+              <option value="activity" data-i18n="repActivity">سجل النشاط</option>
+            </select>
+          </label>
+          <label class="field" style="margin:0">
+            <span data-i18n="dateFrom">من تاريخ</span>
+            <input type="date" id="repFrom">
+          </label>
+          <label class="field" style="margin:0">
+            <span data-i18n="dateTo">إلى تاريخ</span>
+            <input type="date" id="repTo">
+          </label>
+        </div>
+
+        <div class="row gap">
+          <button class="btn primary" id="repRunBtn" data-i18n="runReport">تشغيل التقرير</button>
+          <button class="btn" id="repTodayBtn" data-i18n="today">اليوم</button>
+          <button class="btn" id="repWeekBtn" data-i18n="thisWeek">هذا الأسبوع</button>
+          <button class="btn" id="repMonthBtn" data-i18n="thisMonth">هذا الشهر</button>
+          <button class="btn" id="repAllBtn" data-i18n="allTime">كل الوقت</button>
+        </div>
+      </div>
+
+      <div class="card" id="repResultCard" hidden>
+        <div class="report-head">
+          <div>
+            <h3 class="report-title" id="repTitle">—</h3>
+            <div class="report-sub" id="repSubtitle">—</div>
+          </div>
+          <div class="row">
+            <button class="btn sm" id="repPrintBtn" data-i18n="printReport">🖨 طباعة</button>
+            <button class="btn sm ok" id="repExcelBtn" data-i18n="exportExcel">⬇ Excel</button>
+            <button class="btn sm purple" id="repPdfBtn" data-i18n="exportPdf">⬇ PDF</button>
+          </div>
+        </div>
+        <div id="repKpis" class="kpis"></div>
+        <div class="rep-wrap" id="repTableWrap"></div>
+      </div>
+    </div>
+
+    <!-- ========== PANEL: LOG ========== -->
+    <div class="panel" id="panel-log">
+      <div class="card">
+        <h3 class="card-title" data-i18n="logTitle">سجل النشاط الكامل</h3>
+        <div class="form-grid">
+          <label class="field" style="margin:0">
+            <input id="logSearch" data-i18n-ph="searchPh">
+          </label>
+          <label class="field" style="margin:0">
+            <select id="logFilter">
+              <option value="" data-i18n="allTypes">كل الأنواع</option>
+              <option value="sale" data-i18n="typeSale">مبيعات</option>
+              <option value="prod" data-i18n="typeProduct">منتجات</option>
+              <option value="cat"  data-i18n="typeCategory">فئات</option>
+              <option value="bak"  data-i18n="typeBackup">نسخ احتياطي</option>
+              <option value="sys"  data-i18n="typeSystem">نظام</option>
+            </select>
+          </label>
+        </div>
+        <div class="row gap">
+          <button class="btn sm" id="logExportBtn" data-i18n="exportLog">⬇ تصدير السجل</button>
+          <button class="btn sm danger" id="logClearBtn" data-i18n="clearLog">مسح السجل</button>
+        </div>
+        <div id="logList" style="margin-top:14px;max-height:560px;overflow:auto"></div>
+      </div>
+    </div>
+
+    <!-- ========== PANEL: BACKUP ========== -->
+    <div class="panel" id="panel-backup">
+      <div class="panel-grid">
+        <div class="card">
+          <h3 class="card-title" data-i18n="backupCreate">إنشاء نسخة احتياطية</h3>
+          <p class="hint" data-i18n="backupHint">أنشئ نسخة احتياطية كاملة من بياناتك في أي وقت. يتم حفظها في مجلد التخزين المحدد أو تنزيلها تلقائيًا.</p>
+          <div class="row gap">
+            <button class="btn ok" id="backupNowBtn" data-i18n="backupNow">💾 نسخة احتياطية الآن</button>
+            <button class="btn primary" id="backupExportBtn" data-i18n="exportAll">⬇ تصدير كل البيانات</button>
+          </div>
+          <div class="sec-title" data-i18n="restoreTitle">استعادة نسخة احتياطية</div>
+          <input type="file" id="restoreFile" accept=".json" style="padding:9px">
+          <div class="row gap">
+            <button class="btn warn" id="restoreBtn" data-i18n="restoreBtn">♻ استعادة</button>
+          </div>
+        </div>
+
+        <div class="card">
+          <h3 class="card-title" data-i18n="eodTitle">تصدير نهاية اليوم</h3>
+          <p class="hint" data-i18n="eodHint">تصدير تقرير اليوم الكامل بصيغة Excel و PDF وحفظه تلقائيًا في مجلد التخزين.</p>
+          <label class="field">
+            <span data-i18n="eodDate">تاريخ التصدير</span>
+            <input type="date" id="eodDate">
+          </label>
+          <div class="row gap">
+            <button class="btn ok" id="eodExcelBtn" data-i18n="eodExcel">📊 Excel</button>
+            <button class="btn purple" id="eodPdfBtn" data-i18n="eodPdf">📄 PDF</button>
+            <button class="btn primary" id="eodBothBtn" data-i18n="eodBoth">📦 تصدير الكل</button>
+          </div>
+          <div class="row gap">
+            <label class="switch">
+              <input type="checkbox" id="autoEod">
+              <span data-i18n="autoEod">تصدير تلقائي في نهاية اليوم</span>
+            </label>
+          </div>
+        </div>
+      </div>
+
+      <div class="card">
+        <h3 class="card-title" data-i18n="backupHistoryTitle">سجل النسخ الاحتياطية</h3>
+        <div class="table-wrap" style="max-height:340px">
+          <table>
+            <thead>
+              <tr>
+                <th data-i18n="bkpDate">التاريخ والوقت</th>
+                <th data-i18n="bkpType">النوع</th>
+                <th data-i18n="bkpSize">الحجم</th>
+                <th data-i18n="bkpDest">الوجهة</th>
+                <th data-i18n="thActions">إجراءات</th>
+              </tr>
+            </thead>
+            <tbody id="backupBody"></tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+
+  </div>
+</section>
+
+<!-- ===== SETTINGS MODAL ===== -->
+<div class="modal-back" id="settingsModal">
+  <div class="modal">
+    <div class="modal-head">
+      <h3 data-i18n="settingsTitle">الإعدادات</h3>
+      <button class="icon-btn" id="settingsClose">✕</button>
+    </div>
+    <div class="modal-body">
+
+      <div class="sec-title" data-i18n="secGeneral">عام</div>
+      <div class="form-grid">
+        <label class="field" style="margin:0">
+          <span data-i18n="language">اللغة</span>
+          <select id="setLang">
+            <option value="ar">العربية</option>
+            <option value="en">English</option>
+          </select>
+        </label>
+        <label class="field" style="margin:0">
+          <span data-i18n="currency">العملة</span>
+          <input id="setCurrency" maxlength="8">
+        </label>
+        <label class="field" style="margin:0">
+          <span data-i18n="storeName">اسم المتجر</span>
+          <input id="setStoreName">
+        </label>
+        <label class="field" style="margin:0">
+          <span data-i18n="storePhone">هاتف المتجر</span>
+          <input id="setStorePhone">
+        </label>
+      </div>
+
+      <div class="sec-title" data-i18n="secMusic">الموسيقى</div>
+      <div class="row" style="gap:14px">
+        <label class="switch">
+          <input type="checkbox" id="setMusicOn">
+          <span data-i18n="musicEnabled">تشغيل الموسيقى</span>
+        </label>
+        <label class="switch">
+          <input type="checkbox" id="setMusicAutostart">
+          <span data-i18n="musicAutostart">تشغيل تلقائي بعد الدخول</span>
+        </label>
+      </div>
+      <div class="range-row" style="margin-top:12px">
+        <span style="font-size:12.5px;color:var(--muted);font-weight:700" data-i18n="volume">مستوى الصوت</span>
+        <input type="range" id="setVolume" min="0" max="100" value="35">
+        <span id="volLabel" style="font-size:12.5px;font-weight:700;min-width:38px;text-align:center">35%</span>
+      </div>
+
+      <div class="sec-title" data-i18n="secStorage">مجلد التخزين المحلي</div>
+      <p class="hint" style="margin-top:0" data-i18n="storageHint">
+        اختر مجلدًا على جهازك لحفظ النسخ الاحتياطية والملفات المصدّرة تلقائيًا.
+        (مدعوم في متصفح Chrome / Edge)
+      </p>
+      <div class="path-box" id="dirPath">—</div>
+      <div class="row gap">
+        <button class="btn primary sm" id="pickDirBtn" data-i18n="pickDir">📁 اختيار مجلد</button>
+        <button class="btn sm" id="clearDirBtn" data-i18n="clearDir">إزالة</button>
+        <button class="btn ok sm" id="testDirBtn" data-i18n="testDir">اختبار الكتابة</button>
+      </div>
+
+      <div class="sec-title" data-i18n="secData">البيانات</div>
+      <div class="row">
+        <button class="btn danger sm" id="resetAllBtn" data-i18n="resetAll">🗑 حذف جميع البيانات</button>
+      </div>
+    </div>
+    <div class="modal-foot">
+      <button class="btn" id="settingsCancel" data-i18n="cancel">إلغاء</button>
+      <button class="btn primary" id="settingsSave" data-i18n="saveSettings">حفظ الإعدادات</button>
+    </div>
+  </div>
+</div>
+
+<!-- PRINT AREA -->
+<div id="printArea"></div>
+<div class="toast" id="toast"></div>
+
+<script>
+/* =========================================================
+   SMART MARKET — Full Offline App (v3)
+   ========================================================= */
+
+/* ---------- 1) TRANSLATIONS ---------- */
+const I18N = {
+  ar: {
+    appName:"السوق الذكي", tagline:"نظام إدارة المنتجات والمبيعات",
+    loginSubtitle:"سجّل الدخول للمتابعة", username:"اسم المستخدم", password:"كلمة المرور",
+    usernamePh:"أدخل اسم المستخدم", passwordPh:"أدخل كلمة المرور",
+    login:"تسجيل الدخول", logout:"خروج", wrongCreds:"اسم المستخدم أو كلمة المرور غير صحيحة",
+
+    tabProducts:"المنتجات", tabSales:"المبيعات", tabHistory:"سجل المبيعات",
+    tabReports:"التقارير", tabLog:"سجل النشاط", tabBackup:"النسخ الاحتياطي",
+
+    categoriesTitle:"الفئات", catNameAr:"اسم الفئة (عربي)", catNameEn:"اسم الفئة (إنجليزي)",
+    catCode:"رمز الفئة (بادئة الأكواد)", addCategory:"إضافة فئة", updateCategory:"تحديث الفئة",
+    cancel:"إلغاء", noCategories:"لا توجد فئات بعد. أضف فئة أولاً.",
+    catInUse:"لا يمكن حذف فئة مرتبطة بمنتجات",
+
+    productFormTitle:"بيانات المنتج", prodCode:"رمز المنتج", auto:"توليد",
+    category:"الفئة", nameAr:"الاسم (عربي)", nameEn:"الاسم (إنجليزي)",
+    price:"السعر", stock:"الكمية بالمخزن", addProduct:"إضافة منتج", updateProduct:"تحديث المنتج",
+    selectCategory:"اختر الفئة", productsTitle:"قائمة المنتجات",
+    searchPh:"بحث...", allCategories:"كل الفئات",
+    thCode:"الرمز", thName:"الاسم", thCategory:"الفئة", thPrice:"السعر",
+    thStock:"المخزن", thActions:"إجراءات", thTotal:"الإجمالي", thItems:"الأصناف",
+    noProducts:"لا توجد منتجات مطابقة",
+
+    newSale:"تسجيل عملية بيع", saleCodePh:"أدخل رمز المنتج ثم اضغط Enter",
+    qty:"الكمية المباعة", saleDate:"تاريخ البيع", addItem:"إضافة إلى الفاتورة",
+    saleHint:"أدخل رمز المنتج وسيتم تعبئة جميع البيانات تلقائيًا.",
+    invoiceTitle:"الفاتورة", invoiceNo:"رقم الفاتورة", customer:"اسم العميل", phone:"رقم الهاتف",
+    total:"الإجمالي", save:"حفظ", print:"طباعة الفاتورة", newInvoice:"فاتورة جديدة",
+    emptyInvoice:"الفاتورة فارغة", productNotFound:"المنتج غير موجود",
+    itemAdded:"تمت إضافة الصنف", saleSaved:"تم حفظ الفاتورة بنجاح", missingCode:"أدخل رمز المنتج",
+
+    historyTitle:"سجل المبيعات", noSales:"لا توجد مبيعات مسجلة بعد",
+    clearHistory:"مسح السجل", confirmClearHistory:"هل تريد مسح كل سجل المبيعات؟",
+    reprint:"إعادة الطباعة", view:"عرض",
+
+    reportsTitle:"التقارير الاحترافية", reportType:"نوع التقرير",
+    repDaily:"تقرير المبيعات اليومي", repRange:"مبيعات فترة زمنية",
+    repCategory:"تقرير الفئات", repProduct:"أداء المنتجات",
+    repCustomer:"تقرير العملاء", repInventory:"تقرير المخزون",
+    repProfit:"ملخص شامل", repActivity:"سجل النشاط",
+    dateFrom:"من تاريخ", dateTo:"إلى تاريخ",
+    runReport:"تشغيل التقرير", today:"اليوم", thisWeek:"هذا الأسبوع",
+    thisMonth:"هذا الشهر", allTime:"كل الوقت",
+    printReport:"🖨 طباعة", exportExcel:"⬇ Excel", exportPdf:"⬇ PDF",
+    noData:"لا توجد بيانات في هذه الفترة",
+    rpGenerated:"تاريخ الإنشاء", rpPeriod:"الفترة", rpAllTime:"كل الوقت",
+    kpiSales:"عدد الفواتير", kpiRevenue:"إجمالي الإيرادات", kpiItems:"عدد الأصناف المباعة",
+    kpiAvg:"متوسط الفاتورة", kpiProducts:"عدد المنتجات", kpiStockValue:"قيمة المخزون",
+    kpiCustomers:"عدد العملاء", kpiLowStock:"منتجات منخفضة", kpiProfit:"إجمالي الربح",
+    kpiTransactions:"عدد الحركات",
+    colDate:"التاريخ", colInvoices:"الفواتير", colItems:"الأصناف", colRevenue:"الإيرادات",
+    colCategory:"الفئة", colQtySold:"الكمية المباعة", colProduct:"المنتج",
+    colUnitPrice:"سعر الوحدة", colStock:"المخزون", colValue:"القيمة",
+    colCustomer:"العميل", colOrders:"الطلبات", colLast:"آخر عملية",
+    colType:"النوع", colDetails:"التفاصيل", colTime:"الوقت",
+    reportTitleDaily:"تقرير المبيعات اليومي",
+    reportTitleRange:"تقرير المبيعات للفترة",
+    reportTitleCategory:"تقرير المبيعات حسب الفئة",
+    reportTitleProduct:"أداء المنتجات",
+    reportTitleCustomer:"تقرير العملاء",
+    reportTitleInventory:"تقرير المخزون",
+    reportTitleProfit:"الملخص الشامل",
+    reportTitleActivity:"سجل النشاط",
+
+    logTitle:"سجل النشاط الكامل", allTypes:"كل الأنواع",
+    typeSale:"مبيعات", typeProduct:"منتجات", typeCategory:"فئات",
+    typeBackup:"نسخ احتياطي", typeSystem:"نظام",
+    exportLog:"⬇ تصدير السجل", clearLog:"مسح السجل",
+    confirmClearLog:"هل تريد مسح سجل النشاط؟", noLog:"لا توجد أنشطة مسجلة",
+    logEmpty:"—",
+
+    backupCreate:"إنشاء نسخة احتياطية", backupHint:"أنشئ نسخة احتياطية كاملة من بياناتك في أي وقت. يتم حفظها في مجلد التخزين المحدد أو تنزيلها تلقائيًا.",
+    backupNow:"💾 نسخة احتياطية الآن", exportAll:"⬇ تصدير كل البيانات",
+    restoreTitle:"استعادة نسخة احتياطية", restoreBtn:"♻ استعادة",
+    eodTitle:"تصدير نهاية اليوم", eodHint:"تصدير تقرير اليوم الكامل بصيغة Excel و PDF وحفظه تلقائيًا في مجلد التخزين.",
+    eodDate:"تاريخ التصدير", eodExcel:"📊 Excel", eodPdf:"📄 PDF", eodBoth:"📦 تصدير الكل",
+    autoEod:"تصدير تلقائي في نهاية اليوم",
+    backupHistoryTitle:"سجل النسخ الاحتياطية",
+    bkpDate:"التاريخ والوقت", bkpType:"النوع", bkpSize:"الحجم",
+    bkpDest:"الوجهة", noBackups:"لا توجد نسخ احتياطية بعد",
+    bkpManual:"يدوي", bkpAuto:"تلقائي", bkpEod:"نهاية اليوم", bkpRestore:"استعادة",
+    destFolder:"مجلد التخزين", destDownload:"تنزيل",
+
+    settingsTitle:"الإعدادات", secGeneral:"عام", language:"اللغة", currency:"العملة",
+    storeName:"اسم المتجر", storePhone:"هاتف المتجر",
+    secMusic:"الموسيقى", musicEnabled:"تشغيل الموسيقى", musicAutostart:"تشغيل تلقائي بعد الدخول",
+    volume:"مستوى الصوت",
+    secStorage:"مجلد التخزين المحلي",
+    storageHint:"اختر مجلدًا على جهازك لحفظ النسخ الاحتياطية والملفات المصدّرة تلقائيًا. (مدعوم في Chrome / Edge)",
+    pickDir:"📁 اختيار مجلد", clearDir:"إزالة", testDir:"اختبار الكتابة",
+    secData:"البيانات", resetAll:"🗑 حذف جميع البيانات",
+    saveSettings:"حفظ الإعدادات",
+
+    confirmDelete:"هل أنت متأكد من الحذف؟",
+    saved:"تم الحفظ بنجاح", deleted:"تم الحذف", updated:"تم التحديث",
+    codeExists:"هذا الرمز مستخدم بالفعل", fillRequired:"يرجى تعبئة الحقول المطلوبة",
+    thankYou:"شكراً لتعاملكم معنا", currency2:"ج.م",
+    dirSelected:"تم اختيار المجلد", dirCleared:"تمت إزالة المجلد",
+    writeOk:"الكتابة ناجحة", writeFail:"فشلت الكتابة",
+    noDir:"لم يتم اختيار مجلد — سيتم التنزيل مباشرة",
+    backupDone:"تم إنشاء النسخة الاحتياطية", backupFail:"فشل إنشاء النسخة",
+    restoreDone:"تمت الاستعادة بنجاح", restoreFail:"ملف غير صالح",
+    confirmReset:"سيتم حذف جميع البيانات نهائيًا. متأكد؟",
+    resetDone:"تم حذف جميع البيانات",
+    exported:"تم التصدير", exportFail:"فشل التصدير",
+    apiUnsupported:"متصفحك لا يدعم اختيار المجلد. سيتم التنزيل مباشرة.",
+    logCleared:"تم مسح السجل",
+    reportReady:"التقرير جاهز",
+    musicOn:"الموسيقى تعمل ♪", musicOff:"الموسيقى متوقفة",
+    audioBlocked:"المتصفح يمنع التشغيل — اضغط مرة أخرى",
+    yes:"نعم", no:"لا"
+  },
+  en: {
+    appName:"Smart Market", tagline:"Products & Sales Management System",
+    loginSubtitle:"Sign in to continue", username:"Username", password:"Password",
+    usernamePh:"Enter your username", passwordPh:"Enter your password",
+    login:"Login", logout:"Logout", wrongCreds:"Invalid username or password",
+
+    tabProducts:"Products", tabSales:"Sales", tabHistory:"Sales History",
+    tabReports:"Reports", tabLog:"Activity Log", tabBackup:"Backup",
+
+    categoriesTitle:"Categories", catNameAr:"Category name (Arabic)", catNameEn:"Category name (English)",
+    catCode:"Category code (prefix)", addCategory:"Add category", updateCategory:"Update category",
+    cancel:"Cancel", noCategories:"No categories yet. Add one first.",
+    catInUse:"Cannot delete a category that has products",
+
+    productFormTitle:"Product details", prodCode:"Product code", auto:"Auto",
+    category:"Category", nameAr:"Name (Arabic)", nameEn:"Name (English)",
+    price:"Price", stock:"Stock quantity", addProduct:"Add product", updateProduct:"Update product",
+    selectCategory:"Select category", productsTitle:"Products list",
+    searchPh:"Search...", allCategories:"All categories",
+    thCode:"Code", thName:"Name", thCategory:"Category", thPrice:"Price",
+    thStock:"Stock", thActions:"Actions", thTotal:"Total", thItems:"Items",
+    noProducts:"No matching products",
+
+    newSale:"Record a sale", saleCodePh:"Enter product code and press Enter",
+    qty:"Quantity sold", saleDate:"Sale date", addItem:"Add to invoice",
+    saleHint:"Enter the product code and all data will be filled automatically.",
+    invoiceTitle:"Invoice", invoiceNo:"Invoice No.", customer:"Customer name", phone:"Phone",
+    total:"Total", save:"Save", print:"Print invoice", newInvoice:"New invoice",
+    emptyInvoice:"Invoice is empty", productNotFound:"Product not found",
+    itemAdded:"Item added", saleSaved:"Invoice saved successfully", missingCode:"Please enter a product code",
+
+    historyTitle:"Sales history", noSales:"No sales recorded yet",
+    clearHistory:"Clear history", confirmClearHistory:"Delete all sales history?",
+    reprint:"Reprint", view:"View",
+
+    reportsTitle:"Professional Reports", reportType:"Report type",
+    repDaily:"Daily sales report", repRange:"Period sales",
+    repCategory:"Category report", repProduct:"Product performance",
+    repCustomer:"Customer report", repInventory:"Inventory report",
+    repProfit:"Full summary", repActivity:"Activity log",
+    dateFrom:"From", dateTo:"To",
+    runReport:"Run report", today:"Today", thisWeek:"This week",
+    thisMonth:"This month", allTime:"All time",
+    printReport:"🖨 Print", exportExcel:"⬇ Excel", exportPdf:"⬇ PDF",
+    noData:"No data in this period",
+    rpGenerated:"Generated", rpPeriod:"Period", rpAllTime:"All time",
+    kpiSales:"Invoices", kpiRevenue:"Total revenue", kpiItems:"Items sold",
+    kpiAvg:"Avg. invoice", kpiProducts:"Products", kpiStockValue:"Stock value",
+    kpiCustomers:"Customers", kpiLowStock:"Low stock", kpiProfit:"Total profit",
+    kpiTransactions:"Transactions",
+    colDate:"Date", colInvoices:"Invoices", colItems:"Items", colRevenue:"Revenue",
+    colCategory:"Category", colQtySold:"Qty sold", colProduct:"Product",
+    colUnitPrice:"Unit price", colStock:"Stock", colValue:"Value",
+    colCustomer:"Customer", colOrders:"Orders", colLast:"Last order",
+    colType:"Type", colDetails:"Details", colTime:"Time",
+    reportTitleDaily:"Daily Sales Report",
+    reportTitleRange:"Period Sales Report",
+    reportTitleCategory:"Sales by Category",
+    reportTitleProduct:"Product Performance",
+    reportTitleCustomer:"Customer Report",
+    reportTitleInventory:"Inventory Report",
+    reportTitleProfit:"Full Summary",
+    reportTitleActivity:"Activity Log",
+
+    logTitle:"Full Activity Log", allTypes:"All types",
+    typeSale:"Sales", typeProduct:"Products", typeCategory:"Categories",
+    typeBackup:"Backups", typeSystem:"System",
+    exportLog:"⬇ Export log", clearLog:"Clear log",
+    confirmClearLog:"Clear the activity log?", noLog:"No activities recorded",
+    logEmpty:"—",
+
+    backupCreate:"Create a backup", backupHint:"Create a full backup of your data at any time. It will be saved to the selected storage folder or downloaded automatically.",
+    backupNow:"💾 Backup now", exportAll:"⬇ Export all data",
+    restoreTitle:"Restore a backup", restoreBtn:"♻ Restore",
+    eodTitle:"End-of-day export", eodHint:"Export the full day report as Excel and PDF, saved automatically to your storage folder.",
+    eodDate:"Export date", eodExcel:"📊 Excel", eodPdf:"📄 PDF", eodBoth:"📦 Export all",
+    autoEod:"Auto-export at end of day",
+    backupHistoryTitle:"Backup history",
+    bkpDate:"Date & time", bkpType:"Type", bkpSize:"Size",
+    bkpDest:"Destination", noBackups:"No backups yet",
+    bkpManual:"Manual", bkpAuto:"Auto", bkpEod:"End of day", bkpRestore:"Restore",
+    destFolder:"Storage folder", destDownload:"Download",
+
+    settingsTitle:"Settings", secGeneral:"General", language:"Language", currency:"Currency",
+    storeName:"Store name", storePhone:"Store phone",
+    secMusic:"Music", musicEnabled:"Enable music", musicAutostart:"Autostart after login",
+    volume:"Volume",
+    secStorage:"Local storage folder",
+    storageHint:"Choose a folder on your device to save backups and exports automatically. (Chrome / Edge)",
+    pickDir:"📁 Choose folder", clearDir:"Remove", testDir:"Test write",
+    secData:"Data", resetAll:"🗑 Delete all data",
+    saveSettings:"Save settings",
+
+    confirmDelete:"Are you sure you want to delete?",
+    saved:"Saved successfully", deleted:"Deleted", updated:"Updated",
+    codeExists:"This code is already in use", fillRequired:"Please fill the required fields",
+    thankYou:"Thank you for your business", currency2:"EGP",
+    dirSelected:"Folder selected", dirCleared:"Folder removed",
+    writeOk:"Write successful", writeFail:"Write failed",
+    noDir:"No folder selected — will download directly",
+    backupDone:"Backup created", backupFail:"Backup failed",
+    restoreDone:"Restored successfully", restoreFail:"Invalid file",
+    confirmReset:"All data will be permanently deleted. Are you sure?",
+    resetDone:"All data deleted",
+    exported:"Exported", exportFail:"Export failed",
+    apiUnsupported:"Your browser doesn't support folder picker. Downloading directly.",
+    logCleared:"Log cleared",
+    reportReady:"Report ready",
+    musicOn:"Music playing ♪", musicOff:"Music paused",
+    audioBlocked:"Autoplay blocked — tap again",
+    yes:"Yes", no:"No"
+  }
+};
+
+/* ---------- 2) STATE ---------- */
+const LS_KEY = "smartMarket.v2";
+const CREDS  = { user:"2026", pass:"0" };
+
+let db = null;
+let invoice = { items:[], savedId:null };
+let editingProductId = null;
+let editingCategoryId = null;
+let toastTimer = null;
+let dirHandle = null;
+let currentReport = null;
+
+/* ---------- 3) HELPERS ---------- */
+const $  = s => document.querySelector(s);
+const $$ = s => Array.from(document.querySelectorAll(s));
+const uid = () => Date.now().toString(36) + Math.random().toString(36).slice(2,7);
+const esc = s => String(s ?? "").replace(/[&<>"']/g, m => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m]));
+const t = k => (I18N[db && db.lang] && I18N[db.lang][k]) || k;
+
+function money(n){
+  const v = Number(n) || 0;
+  return v.toLocaleString("en-US",{minimumFractionDigits:2, maximumFractionDigits:2}) + " " + (db.currency || t("currency2"));
+}
+function todayISO(){
+  const d = new Date();
+  return new Date(d.getTime() - d.getTimezoneOffset()*60000).toISOString().slice(0,10);
+}
+function fmtDate(iso){
+  if(!iso) return "-";
+  const p = String(iso).split("-");
+  return p.length === 3 ? `${p[2]}/${p[1]}/${p[0]}` : iso;
+}
+function fmtDateTime(ts){
+  const d = new Date(ts);
+  const pad = n => String(n).padStart(2,"0");
+  return `${pad(d.getDate())}/${pad(d.getMonth()+1)}/${d.getFullYear()} ${pad(d.getHours())}:${pad(d.getMinutes())}:${pad(d.getSeconds())}`;
+}
+function pick(ar, en){ return db.lang === "ar" ? (ar || en || "") : (en || ar || ""); }
+const pName = p => pick(p.nameAr, p.nameEn);
+const cName = c => pick(c.nameAr, c.nameEn);
+const catOf = id => db.categories.find(c => c.id === id);
+
+function findProductByCode(code){
+  const c = String(code || "").trim().toLowerCase();
+  if(!c) return null;
+  return db.products.find(p => String(p.code).trim().toLowerCase() === c);
+}
+function inRange(dateISO, from, to){
+  if(!dateISO) return false;
+  if(from && dateISO < from) return false;
+  if(to && dateISO > to) return false;
+  return true;
+}
+function bytesFmt(n){
+  if(n < 1024) return n + " B";
+  if(n < 1024*1024) return (n/1024).toFixed(1) + " KB";
+  return (n/1024/1024).toFixed(2) + " MB";
+}
+function toast(msg, type="ok"){
+  const el = $("#toast");
+  el.textContent = msg;
+  el.className = "toast show " + type;
+  clearTimeout(toastTimer);
+  toastTimer = setTimeout(() => { el.className = "toast"; }, 2400);
+}
+
+/* ---------- 4) INDEXEDDB (for directory handle) ---------- */
+function idbOpen(){
+  return new Promise((res, rej) => {
+    const r = indexedDB.open("smartMarketFS", 1);
+    r.onupgradeneeded = () => { if(!r.result.objectStoreNames.contains("h")) r.result.createObjectStore("h"); };
+    r.onsuccess = () => res(r.result);
+    r.onerror = () => rej(r.error);
+  });
+}
+async function idbSet(k, v){
+  const d = await idbOpen();
+  return new Promise((res, rej) => {
+    const tx = d.transaction("h","readwrite");
+    tx.objectStore("h").put(v, k);
+    tx.oncomplete = () => res();
+    tx.onerror = () => rej(tx.error);
+  });
+}
+async function idbGet(k){
+  const d = await idbOpen();
+  return new Promise((res, rej) => {
+    const tx = d.transaction("h","readonly");
+    const rq = tx.objectStore("h").get(k);
+    rq.onsuccess = () => res(rq.result);
+    rq.onerror = () => rej(rq.error);
+  });
+}
+async function idbDel(k){
+  const d = await idbOpen();
+  return new Promise((res, rej) => {
+    const tx = d.transaction("h","readwrite");
+    tx.objectStore("h").delete(k);
+    tx.oncomplete = () => res();
+    tx.onerror = () => rej(tx.error);
+  });
+}
+
+/* ---------- 5) STORAGE ---------- */
+function defaultDB(){
+  const c1 = { id:uid(), code:"BEV", nameAr:"مشروبات",   nameEn:"Beverages" };
+  const c2 = { id:uid(), code:"SNK", nameAr:"وجبات خفيفة", nameEn:"Snacks" };
+  const c3 = { id:uid(), code:"ELC", nameAr:"إلكترونيات",  nameEn:"Electronics" };
+  return {
+    lang:"ar",
+    currency:"ج.م",
+    storeName:"السوق الذكي",
+    storePhone:"",
+    invoiceCounter:1,
+    categories:[c1,c2,c3],
+    products:[
+      { id:uid(), code:"BEV-001", nameAr:"مياه معدنية", nameEn:"Mineral Water", categoryId:c1.id, price:10, cost:6, stock:100 },
+      { id:uid(), code:"BEV-002", nameAr:"عصير برتقال",  nameEn:"Orange Juice",  categoryId:c1.id, price:25, cost:17, stock:60 },
+      { id:uid(), code:"SNK-001", nameAr:"شيبسي",        nameEn:"Chips",         categoryId:c2.id, price:15, cost:10, stock:80 },
+      { id:uid(), code:"ELC-001", nameAr:"سماعة رأس",    nameEn:"Headphones",    categoryId:c3.id, price:350, cost:240, stock:20 }
+    ],
+    sales:[],
+    log:[],
+    backups:[],
+    settings:{
+      musicOn:false,
+      musicAutostart:false,
+      volume:45,
+      autoEod:false,
+      lastEod:""
+    }
+  };
+}
+function loadDB(){
+  try{
+    const raw = localStorage.getItem(LS_KEY) || localStorage.getItem("smartMarket.v1");
+    if(raw) db = JSON.parse(raw);
+  }catch(e){ db = null; }
+  if(!db) { db = defaultDB(); saveDB(); }
+  db.categories = db.categories || [];
+  db.products   = db.products   || [];
+  db.sales      = db.sales      || [];
+  db.log        = db.log        || [];
+  db.backups    = db.backups    || [];
+  db.settings   = Object.assign({ musicOn:false, musicAutostart:false, volume:45, autoEod:false, lastEod:"" }, db.settings || {});
+  db.invoiceCounter = db.invoiceCounter || 1;
+  db.lang = db.lang || "ar";
+  db.currency = db.currency || (db.lang === "ar" ? "ج.م" : "EGP");
+  db.storeName = db.storeName || (db.lang === "ar" ? "السوق الذكي" : "Smart Market");
+}
+function saveDB(){ localStorage.setItem(LS_KEY, JSON.stringify(db)); }
+
+/* ---------- 6) ACTIVITY LOG ---------- */
+function logActivity(type, ar, en, meta){
+  db.log.unshift({
+    id: uid(),
+    ts: Date.now(),
+    type,                       // sale | prod | cat | bak | sys
+    ar, en,
+    meta: meta || null
+  });
+  if(db.log.length > 5000) db.log.length = 5000;
+  saveDB();
+}
+const logText = e => db.lang === "ar" ? e.ar : e.en;
+
+/* =========================================================
+   7) BACKGROUND MUSIC (Web Audio API — fully offline)
+   ========================================================= */
+let audioCtx = null;
+let musicMaster = null;
+let musicTimer = null;
+let musicPlaying = false;
+let chordIndex = 0;
+let unlockedAudio = false;
+
+const CHORDS = [
+  { root:130.81, pad:[261.63, 329.63, 392.00] },  // C
+  { root:110.00, pad:[220.00, 261.63, 329.63] },  // Am
+  { root: 87.31, pad:[174.61, 220.00, 261.63] },  // F
+  { root: 98.00, pad:[196.00, 246.94, 293.66] }   // G
+];
+const MELODIES = [
+  [523.25, 659.25, 587.33, 783.99, 659.25, 587.33],
+  [440.00, 523.25, 659.25, 587.33, 523.25, 440.00],
+  [349.23, 440.00, 523.25, 440.00, 349.23, 440.00],
+  [392.00, 493.88, 587.33, 493.88, 392.00, 293.66]
+];
+
+function initAudio(){
+  if(audioCtx && audioCtx.state !== "closed") return true;
+  try{
+    audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+    musicMaster = audioCtx.createGain();
+    musicMaster.gain.value = ((db.settings.volume ?? 45) / 100) * 0.7;
+
+    const lp = audioCtx.createBiquadFilter();
+    lp.type = "lowpass";
+    lp.frequency.value = 4200;
+    lp.Q.value = 0.6;
+
+    // gentle "room" feel
+    const delay = audioCtx.createDelay();
+    delay.delayTime.value = 0.28;
+    const fb = audioCtx.createGain(); fb.gain.value = 0.22;
+    const wet = audioCtx.createGain(); wet.gain.value = 0.18;
+    musicMaster.connect(delay);
+    delay.connect(fb); fb.connect(delay);
+    delay.connect(wet); wet.connect(lp);
+
+    musicMaster.connect(lp);
+    lp.connect(audioCtx.destination);
+    return true;
+  }catch(e){
+    console.error("Audio init failed:", e);
+    audioCtx = null; return false;
+  }
+}
+
+/* Unlock on the very first user interaction (fixes autoplay policy) */
+function unlockAudio(){
+  if(unlockedAudio) return;
+  unlockedAudio = true;
+  if(initAudio() && audioCtx.state === "suspended") audioCtx.resume().catch(()=>{});
+}
+["click","keydown","touchstart","pointerdown"].forEach(ev =>
+  document.addEventListener(ev, unlockAudio, { once:true, passive:true })
+);
+
+function playPad(freqs, now, dur, type){
+  freqs.forEach((f, i) => {
+    const osc = audioCtx.createOscillator();
+    const g = audioCtx.createGain();
+    osc.type = type || (i === 0 ? "sine" : "triangle");
+    osc.frequency.value = f;
+    osc.detune.value = (i - 1) * 6;
+    g.gain.setValueAtTime(0, now);
+    g.gain.linearRampToValueAtTime(0.30, now + 0.9);
+    g.gain.setValueAtTime(0.30, now + dur - 1.2);
+    g.gain.linearRampToValueAtTime(0, now + dur);
+    osc.connect(g); g.connect(musicMaster);
+    osc.start(now); osc.stop(now + dur + 0.1);
+  });
+}
+
+function playBass(freq, now, dur){
+  const osc = audioCtx.createOscillator();
+  const g = audioCtx.createGain();
+  osc.type = "sine";
+  osc.frequency.value = freq;
+  g.gain.setValueAtTime(0, now);
+  g.gain.linearRampToValueAtTime(0.28, now + 0.6);
+  g.gain.setValueAtTime(0.28, now + dur - 1.2);
+  g.gain.linearRampToValueAtTime(0, now + dur);
+  osc.connect(g); g.connect(musicMaster);
+  osc.start(now); osc.stop(now + dur + 0.1);
+}
+
+function playNote(freq, startTime, dur, vol){
+  const osc = audioCtx.createOscillator();
+  const g = audioCtx.createGain();
+  osc.type = "sine";
+  osc.frequency.value = freq;
+  g.gain.setValueAtTime(0, startTime);
+  g.gain.linearRampToValueAtTime(vol, startTime + 0.05);
+  g.gain.exponentialRampToValueAtTime(0.0001, startTime + dur);
+  osc.connect(g); g.connect(musicMaster);
+  osc.start(startTime); osc.stop(startTime + dur + 0.05);
+}
+
+function playBar(){
+  if(!audioCtx) return;
+  const chord = CHORDS[chordIndex % CHORDS.length];
+  const melody = MELODIES[chordIndex % MELODIES.length];
+  const now = audioCtx.currentTime;
+  const dur = 4;
+
+  playPad(chord.pad, now, dur, "triangle");
+  playBass(chord.root, now, dur);
+
+  melody.forEach((note, i) => {
+    playNote(note, now + 0.35 + i * 0.58, 0.55, 0.18);
+  });
+
+  // sparkle
+  playNote(melody[0] * 2, now + 2.1, 1.1, 0.09);
+
+  chordIndex++;
+}
+
+function musicLoop(){
+  if(!musicPlaying) return;
+  playBar();
+  musicTimer = setTimeout(musicLoop, 3900);
+}
+
+async function startMusic(){
+  unlockAudio();
+  if(!initAudio()) return toast("Audio unavailable","error");
+  try{
+    if(audioCtx.state === "suspended") await audioCtx.resume();
+  }catch(e){}
+  if(audioCtx.state !== "running"){
+    return toast(t("audioBlocked"), "warn");
+  }
+  if(musicPlaying) return;
+  musicPlaying = true;
+  updateMusicBtn();
+  musicLoop();
+  toast(t("musicOn"));
+}
+
+function stopMusic(){
+  musicPlaying = false;
+  clearTimeout(musicTimer);
+  updateMusicBtn();
+  toast(t("musicOff"));
+}
+
+function toggleMusic(){
+  musicPlaying ? stopMusic() : startMusic();
+}
+
+function updateMusicBtn(){
+  const b = $("#musicBtn");
+  if(!b) return;
+  b.textContent = musicPlaying ? "❚❚" : "♪";
+  b.classList.toggle("on", musicPlaying);
+  b.title = musicPlaying ? "Pause music" : "Play music";
+}
+
+function setVolume(v){
+  if(musicMaster) musicMaster.gain.value = (v / 100) * 0.7;
+}
+
+/* =========================================================
+   8) FILE / FOLDER HELPERS
+   ========================================================= */
+async function pickDirectory(){
+  if(!window.showDirectoryPicker){
+    toast(t("apiUnsupported"), "warn");
+    return null;
+  }
+  try{
+    const h = await window.showDirectoryPicker({ mode:"readwrite" });
+    if(h.requestPermission){
+      const p = await h.requestPermission({ mode:"readwrite" });
+      if(p !== "granted"){ toast(t("writeFail"), "error"); return null; }
+    }
+    dirHandle = h;
+    await idbSet("dir", h);
+    updateDirDisplay();
+    toast(t("dirSelected"));
+    logActivity("bak", `تم تحديد مجلد التخزين: ${h.name}`, `Storage folder selected: ${h.name}`);
+    return h;
+  }catch(e){ return null; }
+}
+async function restoreDirHandle(){
+  try{
+    const h = await idbGet("dir");
+    if(h){
+      dirHandle = h;
+      updateDirDisplay();
+    }
+  }catch(e){}
+}
+function updateDirDisplay(){
+  const el = $("#dirPath");
+  if(!el) return;
+  if(dirHandle) el.textContent = "📁 " + dirHandle.name;
+  else el.textContent = t("noDir");
+}
+async function writeToFolder(filename, content, mime){
+  if(!dirHandle) return false;
+  try{
+    if(dirHandle.requestPermission){
+      const p = await dirHandle.requestPermission({ mode:"readwrite" });
+      if(p !== "granted") return false;
+    }
+    const fh = await dirHandle.getFileHandle(filename, { create:true });
+    const w  = await fh.createWritable();
+    await w.write(new Blob([content], { type: mime || "application/octet-stream" }));
+    await w.close();
+    return true;
+  }catch(e){ return false; }
+}
+function downloadBlob(filename, content, mime){
+  const blob = new Blob([content], { type: mime || "application/octet-stream" });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement("a");
+  a.href = url; a.download = filename;
+  document.body.appendChild(a); a.click();
+  document.body.removeChild(a);
+  setTimeout(() => URL.revokeObjectURL(url), 4000);
+}
+async function saveFile(filename, content, mime){
+  const wrote = await writeToFolder(filename, content, mime);
+  if(!wrote) downloadBlob(filename, content, mime);
+  return wrote;
+}
+
+/* =========================================================
+   9) EXPORTERS (JSON / EXCEL / CSV / PDF-via-print)
+   ========================================================= */
+function toTableHTML(headers, rows, foot){
+  const head = headers.map(h => `<th>${esc(h)}</th>`).join("");
+  const body = rows.map(r => "<tr>" + r.map(c => `<td>${esc(c)}</td>`).join("") + "</tr>").join("");
+  const footHTML = foot ? "<tfoot><tr>" + foot.map(c => `<td>${esc(c)}</td>`).join("") + "</tr></tfoot>" : "";
+  return `<table border="1" cellspacing="0" cellpadding="4"><thead><tr>${head}</tr></thead><tbody>${body}</tbody>${footHTML}</table>`;
+}
+async function exportExcel(filename, sheetName, title, headers, rows, foot, meta){
+  const table = toTableHTML(headers, rows, foot);
+  const metaHTML = meta ? `<p style="font-size:12px">${meta.map(m => esc(m)).join(" &nbsp;|&nbsp; ")}</p>` : "";
+  const html =
+`\uFEFF<html xmlns:o="urn:schemas-microsoft-com:office:office" xmlns:x="urn:schemas-microsoft-com:office:excel" xmlns="http://www.w3.org/TR/REC-html40">
+<head><meta charset="UTF-8">
+<!--[if gte mso 9]><xml><x:ExcelWorkbook><x:ExcelWorksheets><x:ExcelWorksheet>
+<x:Name>${esc(sheetName)}</x:Name><x:WorksheetOptions><x:DisplayGridlines/></x:WorksheetOptions>
+</x:ExcelWorksheet></x:ExcelWorksheets></x:ExcelWorkbook></xml><![endif]-->
+<style>
+  table{border-collapse:collapse;font-family:"Segoe UI",Tahoma,sans-serif;font-size:12px}
+  th{background:#dbeafe;font-weight:bold}
+  th,td{border:1px solid #999;padding:5px 8px}
+  tfoot td{background:#e0f2fe;font-weight:bold}
+</style></head>
+<body dir="${db.lang === "ar" ? "rtl" : "ltr"}">
+  <h2>${esc(title)}</h2>
+  ${metaHTML}
+  ${table}
+</body></html>`;
+  const wrote = await saveFile(filename, html, "application/vnd.ms-excel;charset=utf-8");
+  logActivity("bak", `تصدير Excel: ${filename}`, `Excel export: ${filename}`);
+  return wrote;
+}
+function printHTML(html){
+  $("#printArea").innerHTML = html;
+  setTimeout(() => window.print(), 120);
+}
+function reportPrintHeader(title, subtitle, metaLines){
+  return `<div class="r-head">
+    <h2>${esc(db.storeName || t("appName"))}</h2>
+    <p>${esc(t("tagline"))}</p>
+  </div>
+  <div class="r-line" style="border-top:2px dashed #000;margin:10px 0"></div>
+  <h3 style="margin:0 0 6px">${esc(title)}</h3>
+  <div style="font-size:12.5px;color:#444;margin-bottom:8px">${esc(subtitle || "")}</div>
+  <div class="rp-meta" style="display:flex;flex-wrap:wrap;gap:6px 24px;font-size:12px">
+    ${(metaLines||[]).map(m => `<div>${esc(m)}</div>`).join("")}
+  </div>`;
+}
+
+/* =========================================================
+   10) LANGUAGE
+   ========================================================= */
+function applyLang(){
+  document.documentElement.lang = db.lang;
+  document.documentElement.dir  = db.lang === "ar" ? "rtl" : "ltr";
+  $$("[data-i18n]").forEach(el => { el.textContent = t(el.dataset.i18n); });
+  $$("[data-i18n-ph]").forEach(el => { el.placeholder = t(el.dataset.i18nPh); });
+  const label = db.lang === "ar" ? "EN" : "ع";
+  $("#langBtn").textContent = label;
+  $("#langBtnLogin").textContent = label;
+  renderAll();
+}
+function toggleLang(){
+  db.lang = db.lang === "ar" ? "en" : "ar";
+  if(db.lang === "en" && db.currency === "ج.م") db.currency = "EGP";
+  if(db.lang === "ar" && db.currency === "EGP") db.currency = "ج.م";
+  saveDB(); applyLang();
+  logActivity("sys", `تم تغيير اللغة إلى ${db.lang === "ar" ? "العربية" : "الإنجليزية"}`, `Language changed to ${db.lang === "ar" ? "Arabic" : "English"}`);
+}
+
+/* =========================================================
+   11) LOGIN
+   ========================================================= */
+$("#loginForm").addEventListener("submit", e => {
+  e.preventDefault();
+  const u = $("#userInput").value.trim();
+  const p = $("#passInput").value.trim();
+  if(u === CREDS.user && p === CREDS.pass){
+    $("#loginError").textContent = "";
+    $("#userInput").value = ""; $("#passInput").value = "";
+    $("#loginScreen").classList.remove("show");
+    $("#app").classList.add("show");
+    logActivity("sys", "تسجيل دخول ناجح", "Successful login");
+    startInvoice();
+    renderAll();
+    // called directly inside the user gesture → audio allowed
+    if(db.settings.musicAutostart || db.settings.musicOn){
+      startMusic().catch(()=>{});
+    }
+    checkAutoEod();
+  }else{
+    $("#loginError").textContent = t("wrongCreds");
+  }
+});
+$("#logoutBtn").addEventListener("click", () => {
+  logActivity("sys", "تسجيل خروج", "Logout");
+  stopMusic();
+  $("#app").classList.remove("show");
+  $("#loginScreen").classList.add("show");
+});
+$("#langBtn").addEventListener("click", toggleLang);
+$("#langBtnLogin").addEventListener("click", toggleLang);
+$("#musicBtn").addEventListener("click", toggleMusic);
+
+/* =========================================================
+   12) TABS
+   ========================================================= */
+$$(".tab").forEach(btn => {
+  btn.addEventListener("click", () => {
+    $$(".tab").forEach(b => b.classList.toggle("active", b === btn));
+    $$(".panel").forEach(p => p.classList.toggle("show", p.id === "panel-" + btn.dataset.tab));
+    if(btn.dataset.tab === "reports" && !currentReport) runReport();
+    if(btn.dataset.tab === "backup") renderBackups();
+  });
+});
+
+/* =========================================================
+   13) CATEGORIES
+   ========================================================= */
+$("#catSaveBtn").addEventListener("click", () => {
+  const nameAr = $("#catNameAr").value.trim();
+  const nameEn = $("#catNameEn").value.trim();
+  let code = $("#catCode").value.trim().toUpperCase().replace(/\s+/g,"");
+  if(!nameAr && !nameEn) return toast(t("fillRequired"), "error");
+  if(!code) code = (nameEn || nameAr).slice(0,3).toUpperCase();
+
+  if(editingCategoryId){
+    const c = catOf(editingCategoryId);
+    if(c){ c.nameAr = nameAr; c.nameEn = nameEn; c.code = code; }
+    logActivity("cat", `تعديل فئة: ${nameAr || nameEn}`, `Category edited: ${nameEn || nameAr}`);
+    toast(t("updated")); resetCatForm();
+  }else{
+    db.categories.push({ id:uid(), code, nameAr, nameEn });
+    logActivity("cat", `إضافة فئة: ${nameAr || nameEn}`, `Category added: ${nameEn || nameAr}`);
+    toast(t("saved")); resetCatForm();
+  }
+  saveDB(); renderAll();
+});
+$("#catCancelBtn").addEventListener("click", resetCatForm);
+
+function resetCatForm(){
+  editingCategoryId = null;
+  $("#catNameAr").value = ""; $("#catNameEn").value = ""; $("#catCode").value = "";
+  $("#catSaveBtn").textContent = t("addCategory");
+  $("#catCancelBtn").hidden = true;
+}
+function renderCategories(){
+  const box = $("#catList");
+  if(!db.categories.length){ box.innerHTML = `<p class="empty">${t("noCategories")}</p>`; return; }
+  box.innerHTML = db.categories.map(c => `
+    <div class="chip">
+      <span class="code">${esc(c.code)}</span>
+      <span>${esc(cName(c))}</span>
+      <button class="icon-btn" data-edit-cat="${c.id}" title="${t("updateCategory")}">✎</button>
+      <button class="icon-btn danger" data-del-cat="${c.id}" title="✕">✕</button>
+    </div>`).join("");
+}
+$("#catList").addEventListener("click", e => {
+  const editBtn = e.target.closest("[data-edit-cat]");
+  const delBtn  = e.target.closest("[data-del-cat]");
+  if(editBtn){
+    const c = catOf(editBtn.dataset.editCat); if(!c) return;
+    editingCategoryId = c.id;
+    $("#catNameAr").value = c.nameAr || ""; $("#catNameEn").value = c.nameEn || "";
+    $("#catCode").value = c.code || "";
+    $("#catSaveBtn").textContent = t("updateCategory");
+    $("#catCancelBtn").hidden = false;
+    $("#catNameAr").focus();
+  }
+  if(delBtn){
+    const id = delBtn.dataset.delCat;
+    if(db.products.some(p => p.categoryId === id)) return toast(t("catInUse"), "error");
+    if(!confirm(t("confirmDelete"))) return;
+    const c = catOf(id);
+    db.categories = db.categories.filter(x => x.id !== id);
+    logActivity("cat", `حذف فئة: ${c ? (c.nameAr || c.nameEn) : ""}`, `Category deleted: ${c ? (c.nameEn || c.nameAr) : ""}`);
+    saveDB(); renderAll(); toast(t("deleted"));
+  }
+});
+
+/* =========================================================
+   14) PRODUCTS
+   ========================================================= */
+$("#autoCodeBtn").addEventListener("click", () => {
+  const catId = $("#pCat").value;
+  if(!catId) return toast(t("selectCategory"), "error");
+  $("#pCode").value = nextCode(catId);
+});
+function nextCode(catId){
+  const cat = catOf(catId);
+  const prefix = (cat && cat.code ? cat.code : "P").toUpperCase();
+  const nums = db.products.filter(p => p.categoryId === catId)
+    .map(p => { const m = String(p.code).toUpperCase().match(/(\d+)\s*$/); return m ? parseInt(m[1],10) : 0; });
+  const next = (nums.length ? Math.max(...nums) : 0) + 1;
+  return prefix + "-" + String(next).padStart(3,"0");
+}
+$("#pSaveBtn").addEventListener("click", () => {
+  const code   = $("#pCode").value.trim();
+  const catId  = $("#pCat").value;
+  const nameAr = $("#pNameAr").value.trim();
+  const nameEn = $("#pNameEn").value.trim();
+  const price  = parseFloat($("#pPrice").value) || 0;
+  const stock  = parseInt($("#pStock").value,10) || 0;
+
+  if(!code || !catId || (!nameAr && !nameEn)) return toast(t("fillRequired"), "error");
+  const dup = db.products.find(p =>
+    String(p.code).toLowerCase() === code.toLowerCase() && p.id !== editingProductId);
+  if(dup) return toast(t("codeExists"), "error");
+
+  if(editingProductId){
+    const p = db.products.find(x => x.id === editingProductId);
+    if(p){ p.code=code; p.categoryId=catId; p.nameAr=nameAr; p.nameEn=nameEn; p.price=price; p.stock=stock; }
+    logActivity("prod", `تعديل منتج: ${code} — ${nameAr || nameEn}`, `Product edited: ${code} — ${nameEn || nameAr}`);
+    toast(t("updated")); resetProductForm();
+  }else{
+    db.products.push({ id:uid(), code, categoryId:catId, nameAr, nameEn, price, stock });
+    logActivity("prod", `إضافة منتج: ${code} — ${nameAr || nameEn}`, `Product added: ${code} — ${nameEn || nameAr}`);
+    toast(t("saved")); resetProductForm();
+  }
+  saveDB(); renderAll();
+});
+$("#pCancelBtn").addEventListener("click", resetProductForm);
+function resetProductForm(){
+  editingProductId = null;
+  $("#pCode").value = ""; $("#pNameAr").value = ""; $("#pNameEn").value = "";
+  $("#pPrice").value = ""; $("#pStock").value = "0";
+  $("#pSaveBtn").textContent = t("addProduct");
+  $("#pCancelBtn").hidden = true;
+}
+function renderCategorySelects(){
+  const sel = $("#pCat"), cur = sel.value;
+  sel.innerHTML = `<option value="">${t("selectCategory")}</option>` +
+    db.categories.map(c => `<option value="${c.id}">${esc(cName(c))} — ${esc(c.code)}</option>`).join("");
+  if(cur && db.categories.some(c => c.id === cur)) sel.value = cur;
+
+  const f = $("#prodFilter"), curf = f.value;
+  f.innerHTML = `<option value="">${t("allCategories")}</option>` +
+    db.categories.map(c => `<option value="${c.id}">${esc(cName(c))}</option>`).join("");
+  if(curf && db.categories.some(c => c.id === curf)) f.value = curf;
+}
+function renderProducts(){
+  const q = $("#prodSearch").value.trim().toLowerCase();
+  const f = $("#prodFilter").value;
+  let list = db.products.slice();
+  if(f) list = list.filter(p => p.categoryId === f);
+  if(q) list = list.filter(p =>
+    String(p.code).toLowerCase().includes(q) ||
+    String(p.nameAr || "").toLowerCase().includes(q) ||
+    String(p.nameEn || "").toLowerCase().includes(q));
+
+  const body = $("#prodBody");
+  if(!list.length){
+    body.innerHTML = `<tr><td colspan="6" class="empty">${t("noProducts")}</td></tr>`;
+    return;
+  }
+  body.innerHTML = list.map(p => {
+    const c = catOf(p.categoryId);
+    const stockCls = p.stock <= 0 ? "badge red" : (p.stock < 10 ? "badge warn" : "badge");
+    return `<tr>
+      <td class="mono">${esc(p.code)}</td>
+      <td>${esc(pName(p))}</td>
+      <td><span class="badge">${esc(c ? cName(c) : "-")}</span></td>
+      <td>${money(p.price)}</td>
+      <td><span class="${stockCls}">${p.stock ?? 0}</span></td>
+      <td class="actions">
+        <button class="icon-btn" data-edit-prod="${p.id}" title="✎">✎</button>
+        <button class="icon-btn danger" data-del-prod="${p.id}" title="✕">✕</button>
+      </td>
+    </tr>`;
+  }).join("");
+}
+$("#prodBody").addEventListener("click", e => {
+  const editBtn = e.target.closest("[data-edit-prod]");
+  const delBtn  = e.target.closest("[data-del-prod]");
+  if(editBtn){
+    const p = db.products.find(x => x.id === editBtn.dataset.editProd); if(!p) return;
+    editingProductId = p.id;
+    $("#pCode").value = p.code; $("#pCat").value = p.categoryId;
+    $("#pNameAr").value = p.nameAr || ""; $("#pNameEn").value = p.nameEn || "";
+    $("#pPrice").value = p.price; $("#pStock").value = p.stock ?? 0;
+    $("#pSaveBtn").textContent = t("updateProduct");
+    $("#pCancelBtn").hidden = false;
+    $("#pCode").focus();
+  }
+  if(delBtn){
+    if(!confirm(t("confirmDelete"))) return;
+    const p = db.products.find(x => x.id === delBtn.dataset.delProd);
+    db.products = db.products.filter(x => x.id !== delBtn.dataset.delProd);
+    logActivity("prod", `حذف منتج: ${p ? p.code : ""}`, `Product deleted: ${p ? p.code : ""}`);
+    saveDB(); renderAll(); toast(t("deleted"));
+  }
+});
+$("#prodSearch").addEventListener("input", renderProducts);
+$("#prodFilter").addEventListener("change", renderProducts);
+
+/* =========================================================
+   15) SALES / INVOICE
+   ========================================================= */
+function invoiceNumber(){ return "INV-" + String(db.invoiceCounter).padStart(4,"0"); }
+function startInvoice(){
+  invoice = { items:[], savedId:null };
+  $("#invNo").value = invoiceNumber();
+  $("#invCustomer").value = ""; $("#invPhone").value = "";
+  $("#saleCode").value = ""; $("#saleQty").value = 1;
+  $("#saleDate").value = todayISO();
+  clearSalePreview(); renderInvoice();
+}
+function clearSalePreview(){
+  $("#saleName").value = ""; $("#saleCat").value = ""; $("#salePrice").value = "";
+  $("#salePreview").classList.remove("ok","bad");
+}
+function updateSalePreview(){
+  const code = $("#saleCode").value.trim();
+  const box = $("#salePreview");
+  if(!code){ clearSalePreview(); return; }
+  const p = findProductByCode(code);
+  if(p){
+    $("#saleName").value  = pName(p);
+    const c = catOf(p.categoryId);
+    $("#saleCat").value   = c ? cName(c) : "-";
+    $("#salePrice").value = Number(p.price).toFixed(2);
+    box.classList.add("ok"); box.classList.remove("bad");
+  }else{
+    clearSalePreview(); box.classList.add("bad");
+  }
+}
+$("#saleCode").addEventListener("input", updateSalePreview);
+$("#saleCode").addEventListener("keydown", e => {
+  if(e.key === "Enter"){ e.preventDefault(); addItemToInvoice(); }
+});
+$("#addItemBtn").addEventListener("click", addItemToInvoice);
+
+function addItemToInvoice(){
+  const code = $("#saleCode").value.trim();
+  if(!code) return toast(t("missingCode"), "error");
+  const p = findProductByCode(code);
+  if(!p) return toast(t("productNotFound"), "error");
+
+  const qty = Math.max(1, parseInt($("#saleQty").value,10) || 1);
+  const c = catOf(p.categoryId);
+  const price = Number(p.price) || 0;
+
+  const ex = invoice.items.find(i => i.code === p.code);
+  if(ex) ex.qty += qty;
+  else invoice.items.push({
+    code:p.code, name:pName(p), cat: c ? cName(c) : "-",
+    catId: p.categoryId, price, qty, productId:p.id
+  });
+
+  renderInvoice(); toast(t("itemAdded"));
+  $("#saleCode").value = ""; $("#saleQty").value = 1;
+  clearSalePreview(); $("#saleCode").focus();
+}
+function renderInvoice(){
+  const body = $("#invBody");
+  if(!invoice.items.length){
+    body.innerHTML = `<tr><td colspan="7" class="empty">${t("emptyInvoice")}</td></tr>`;
+  }else{
+    body.innerHTML = invoice.items.map((it, i) => `
+      <tr>
+        <td>${i+1}</td>
+        <td class="mono">${esc(it.code)}</td>
+        <td>${esc(it.name)}</td>
+        <td><input type="number" min="1" value="${it.qty}" data-qty="${i}"></td>
+        <td><input type="number" min="0" step="0.01" value="${it.price}" data-price="${i}"></td>
+        <td><b>${money(it.price * it.qty)}</b></td>
+        <td><button class="icon-btn danger" data-del-item="${i}">✕</button></td>
+      </tr>`).join("");
+  }
+  const total = invoice.items.reduce((s, it) => s + it.price * it.qty, 0);
+  $("#invTotal").textContent = money(total);
+}
+$("#invBody").addEventListener("input", e => {
+  const q = e.target.closest("[data-qty]");
+  const p = e.target.closest("[data-price]");
+  if(q){ const i = +q.dataset.qty; invoice.items[i].qty = Math.max(1, parseInt(q.value,10) || 1); renderInvoice(); }
+  if(p){ const i = +p.dataset.price; invoice.items[i].price = Math.max(0, parseFloat(p.value) || 0); renderInvoice(); }
+});
+$("#invBody").addEventListener("click", e => {
+  const d = e.target.closest("[data-del-item]");
+  if(d){ invoice.items.splice(+d.dataset.delItem, 1); renderInvoice(); }
+});
+
+function saveSale(){
+  if(!invoice.items.length){ toast(t("emptyInvoice"), "error"); return null; }
+  if(invoice.savedId) return db.sales.find(s => s.id === invoice.savedId) || null;
+
+  const total = invoice.items.reduce((s, it) => s + it.price * it.qty, 0);
+  const sale = {
+    id: uid(), no: invoiceNumber(),
+    date: $("#saleDate").value || todayISO(),
+    ts: Date.now(),
+    customer: $("#invCustomer").value.trim(),
+    phone: $("#invPhone").value.trim(),
+    items: invoice.items.map(i => ({ ...i })),
+    total
+  };
+  sale.items.forEach(it => {
+    const p = db.products.find(x => x.id === it.productId || String(x.code) === String(it.code));
+    if(p) p.stock = Math.max(0, (p.stock || 0) - it.qty);
+  });
+  db.sales.push(sale);
+  db.invoiceCounter++;
+  invoice.savedId = sale.id;
+
+  logActivity("sale",
+    `فاتورة ${sale.no} — ${sale.items.length} صنف — ${money(total)}${sale.customer ? " — " + sale.customer : ""}`,
+    `Invoice ${sale.no} — ${sale.items.length} items — ${money(total)}${sale.customer ? " — " + sale.customer : ""}`,
+    { saleId: sale.id });
+
+  saveDB(); renderAll(); toast(t("saleSaved"));
+  return sale;
+}
+$("#saveSaleBtn").addEventListener("click", () => { saveSale(); });
+
+/* ---------- INVOICE PRINT ---------- */
+$("#printBtn").addEventListener("click", () => {
+  const sale = saveSale();
+  if(!sale) return;
+  printSale(sale);
+});
+function printSale(sale){
+  const dir = db.lang === "ar" ? "rtl" : "ltr";
+  const rows = sale.items.map((it, i) => `
+    <tr>
+      <td>${i+1}</td>
+      <td>${esc(it.code)}</td>
+      <td>${esc(it.name)}</td>
+      <td>${it.qty}</td>
+      <td>${money(it.price)}</td>
+      <td>${money(it.price * it.qty)}</td>
+    </tr>`).join("");
+  printHTML(`
+    <div class="receipt" dir="${dir}">
+      <div class="r-head">
+        <h2>${esc(db.storeName || t("appName"))}</h2>
+        <p>${esc(t("tagline"))}</p>
+        ${db.storePhone ? `<p>☎ ${esc(db.storePhone)}</p>` : ""}
+      </div>
+      <div class="r-line"></div>
+      <div class="r-meta">
+        <div><b>${t("invoiceNo")}:</b> ${esc(sale.no)}</div>
+        <div><b>${t("saleDate")}:</b> ${esc(fmtDate(sale.date))}</div>
+        <div><b>${t("customer")}:</b> ${esc(sale.customer || "-")}</div>
+        <div><b>${t("phone")}:</b> ${esc(sale.phone || "-")}</div>
+      </div>
+      <table>
+        <thead><tr>
+          <th>#</th><th>${t("thCode")}</th><th>${t("thName")}</th>
+          <th>${t("qty")}</th><th>${t("price")}</th><th>${t("thTotal")}</th>
+        </tr></thead>
+        <tbody>${rows}</tbody>
+      </table>
+      <div class="r-total">${t("total")}: ${money(sale.total)}</div>
+      <p class="r-thanks">${t("thankYou")}</p>
+      <p class="r-foot">${esc(db.storeName || t("appName"))} — ${fmtDateTime(Date.now())}</p>
+    </div>`);
+}
+$("#newInvBtn").addEventListener("click", () => {
+  if(invoice.items.length && !invoice.savedId){ if(!confirm(t("confirmDelete"))) return; }
+  startInvoice();
+});
+
+/* =========================================================
+   16) HISTORY
+   ========================================================= */
+function renderHistory(){
+  const body = $("#historyBody");
+  if(!db.sales.length){
+    body.innerHTML = `<tr><td colspan="6" class="empty">${t("noSales")}</td></tr>`;
+    return;
+  }
+  body.innerHTML = db.sales.slice().reverse().map(s => `
+    <tr>
+      <td class="mono">${esc(s.no)}</td>
+      <td>${esc(fmtDate(s.date))}</td>
+      <td>${esc(s.customer || "-")}</td>
+      <td>${s.items.length}</td>
+      <td><b>${money(s.total)}</b></td>
+      <td class="actions">
+        <button class="icon-btn" data-reprint="${s.id}" title="${t("reprint")}">🖨</button>
+        <button class="icon-btn danger" data-delsale="${s.id}" title="✕">✕</button>
+      </td>
+    </tr>`).join("");
+}
+$("#historyBody").addEventListener("click", e => {
+  const rp = e.target.closest("[data-reprint]");
+  const dl = e.target.closest("[data-delsale]");
+  if(rp){
+    const s = db.sales.find(x => x.id === rp.dataset.reprint);
+    if(s) printSale(s);
+  }
+  if(dl){
+    if(!confirm(t("confirmDelete"))) return;
+    const s = db.sales.find(x => x.id === dl.dataset.delsale);
+    db.sales = db.sales.filter(x => x.id !== dl.dataset.delsale);
+    logActivity("sale", `حذف فاتورة ${s ? s.no : ""}`, `Invoice deleted: ${s ? s.no : ""}`);
+    saveDB(); renderAll(); toast(t("deleted"));
+  }
+});
+$("#clearHistoryBtn").addEventListener("click", () => {
+  if(!db.sales.length) return;
+  if(!confirm(t("confirmClearHistory"))) return;
+  db.sales = [];
+  logActivity("sale", "مسح كل سجل المبيعات", "All sales history cleared");
+  saveDB(); renderAll(); toast(t("deleted"));
+});
+
+/* =========================================================
+   17) ACTIVITY LOG PANEL
+   ========================================================= */
+const LOG_ICONS = { sale:"🧾", prod:"📦", cat:"🏷", bak:"💾", sys:"⚙" };
+function renderLog(){
+  const q = ($("#logSearch").value || "").trim().toLowerCase();
+  const f = $("#logFilter").value;
+  let list = db.log.slice();
+  if(f) list = list.filter(e => e.type === f);
+  if(q) list = list.filter(e => (logText(e) || "").toLowerCase().includes(q));
+
+  const box = $("#logList");
+  if(!list.length){ box.innerHTML = `<p class="empty">${t("noLog")}</p>`; return; }
+  box.innerHTML = list.slice(0, 500).map(e => `
+    <div class="log-item">
+      <div class="log-icon ${e.type}">${LOG_ICONS[e.type] || "•"}</div>
+      <div class="log-body">
+        <div class="ttl">${esc(logText(e))}</div>
+        <div class="meta">${t("colType")}: ${e.type}</div>
+      </div>
+      <div class="log-time">${esc(fmtDateTime(e.ts))}</div>
+    </div>`).join("");
+}
+$("#logSearch").addEventListener("input", renderLog);
+$("#logFilter").addEventListener("change", renderLog);
+$("#logClearBtn").addEventListener("click", () => {
+  if(!db.log.length) return;
+  if(!confirm(t("confirmClearLog"))) return;
+  db.log = [];
+  saveDB(); renderLog(); toast(t("logCleared"));
+});
+$("#logExportBtn").addEventListener("click", async () => {
+  const headers = ["#", t("colTime"), t("colType"), t("colDetails")];
+  const rows = db.log.map((e, i) => [i+1, fmtDateTime(e.ts), e.type, logText(e)]);
+  await exportExcel(
+    `SmartMarket_ActivityLog_${todayISO()}.xls`, "ActivityLog",
+    t("reportTitleActivity"), headers, rows, null,
+    [`${t("rpGenerated")}: ${fmtDateTime(Date.now())}`, `${t("kpiTransactions")}: ${db.log.length}`]
+  );
+  toast(t("exported"));
+});
+
+/* =========================================================
+   18) REPORTS ENGINE
+   ========================================================= */
+function reportRange(){
+  return { from: $("#repFrom").value, to: $("#repTo").value };
+}
+function salesInRange(from, to){
+  return db.sales.filter(s => inRange(s.date, from, to));
+}
+function buildReport(type){
+  const { from, to } = reportRange();
+  const periodLabel = (from || to)
+    ? `${from ? fmtDate(from) : "…"} → ${to ? fmtDate(to) : "…"}`
+    : t("rpAllTime");
+
+  if(type === "inventory"){
+    const headers = [t("thCode"), t("thName"), t("thCategory"), t("thPrice"), t("thStock"), t("colValue")];
+    const rows = db.products.map(p => {
+      const c = catOf(p.categoryId);
+      return [p.code, pName(p), c ? cName(c) : "-",
+              Number(p.price).toFixed(2), p.stock ?? 0,
+              (Number(p.price) * (p.stock || 0)).toFixed(2)];
+    });
+    const stockValue = db.products.reduce((s, p) => s + (Number(p.price)||0) * (p.stock||0), 0);
+    const lowStock = db.products.filter(p => (p.stock||0) < 10).length;
+    const kpis = [
+      { cls:"", lbl:t("kpiProducts"), val: db.products.length },
+      { cls:"g", lbl:t("kpiStockValue"), val: money(stockValue) },
+      { cls:"y", lbl:t("kpiLowStock"), val: lowStock }
+    ];
+    const foot = ["","","", "", "", money(stockValue)];
+    return { key:type, title: t("reportTitleInventory"), subtitle: periodLabel,
+             headers, rows, foot, kpis,
+             metaLines:[`${t("rpGenerated")}: ${fmtDateTime(Date.now())}`] };
+  }
+
+  if(type === "activity"){
+    const list = db.log.filter(e => {
+      const d = new Date(e.ts);
+      const iso = new Date(d.getTime() - d.getTimezoneOffset()*60000).toISOString().slice(0,10);
+      return inRange(iso, from, to);
+    });
+    const headers = ["#", t("colTime"), t("colType"), t("colDetails")];
+    const rows = list.map((e, i) => [i+1, fmtDateTime(e.ts), e.type, logText(e)]);
+    return { key:type, title: t("reportTitleActivity"), subtitle: periodLabel,
+             headers, rows, foot:null,
+             kpis:[{ cls:"p", lbl:t("kpiTransactions"), val:list.length }],
+             metaLines:[`${t("rpGenerated")}: ${fmtDateTime(Date.now())}`] };
+  }
+
+  const sales = salesInRange(from, to);
+  const allItems = sales.flatMap(s => s.items.map(i => ({ ...i, date: s.date, saleNo: s.no, customer: s.customer })));
+  const totalRevenue = sales.reduce((s, x) => s + x.total, 0);
+  const totalItems = allItems.reduce((s, i) => s + i.qty, 0);
+  const avg = sales.length ? totalRevenue / sales.length : 0;
+
+  const baseMeta = [
+    `${t("rpGenerated")}: ${fmtDateTime(Date.now())}`,
+    `${t("rpPeriod")}: ${periodLabel}`
+  ];
+
+  if(type === "daily" || type === "range"){
+    const byDate = {};
+    sales.forEach(s => { (byDate[s.date] = byDate[s.date] || []).push(s); });
+    const dates = Object.keys(byDate).sort();
+    const headers = [t("colDate"), t("colInvoices"), t("colItems"), t("colRevenue")];
+    const rows = dates.map(d => {
+      const ss = byDate[d];
+      return [fmtDate(d), ss.length,
+              ss.reduce((a,s) => a + s.items.reduce((b,i) => b + i.qty, 0), 0),
+              ss.reduce((a,s) => a + s.total, 0).toFixed(2)];
+    });
+    const foot = [t("total"), sales.length, totalItems, totalRevenue.toFixed(2)];
+    const detailHeaders = [t("invoiceNo"), t("colDate"), t("colCustomer"), t("thItems"), t("total")];
+    const detailRows = sales.map(s => [s.no, fmtDate(s.date), s.customer || "-", s.items.length, s.total.toFixed(2)]);
+    return { key:type,
+      title: type === "daily" ? t("reportTitleDaily") : t("reportTitleRange"),
+      subtitle: periodLabel,
+      headers, rows, foot,
+      detail: { headers: detailHeaders, rows: detailRows },
+      kpis:[
+        { cls:"", lbl:t("kpiSales"), val: sales.length },
+        { cls:"g", lbl:t("kpiRevenue"), val: money(totalRevenue) },
+        { cls:"p", lbl:t("kpiItems"), val: totalItems },
+        { cls:"y", lbl:t("kpiAvg"), val: money(avg) }
+      ],
+      metaLines: baseMeta };
+  }
+
+  if(type === "category"){
+    const map = {};
+    db.categories.forEach(c => map[c.id] = { name: cName(c), qty:0, revenue:0, invoices:new Set() });
+    allItems.forEach(i => {
+      const k = i.catId || "_";
+      if(!map[k]) map[k] = { name: i.cat || "-", qty:0, revenue:0, invoices:new Set() };
+      map[k].qty += i.qty;
+      map[k].revenue += i.price * i.qty;
+    });
+    sales.forEach(s => s.items.forEach(i => {
+      const k = i.catId || "_";
+      if(map[k]) map[k].invoices.add(s.id);
+    }));
+    const headers = [t("colCategory"), t("colQtySold"), t("colInvoices"), t("colRevenue")];
+    const rows = Object.values(map)
+      .filter(v => v.qty > 0)
+      .sort((a,b) => b.revenue - a.revenue)
+      .map(v => [v.name, v.qty, v.invoices.size, v.revenue.toFixed(2)]);
+    const foot = [t("total"), totalItems, sales.length, totalRevenue.toFixed(2)];
+    return { key:type, title: t("reportTitleCategory"), subtitle: periodLabel,
+      headers, rows, foot,
+      kpis:[
+        { cls:"g", lbl:t("kpiRevenue"), val: money(totalRevenue) },
+        { cls:"p", lbl:t("kpiItems"), val: totalItems },
+        { cls:"", lbl:t("kpiSales"), val: sales.length }
+      ],
+      metaLines: baseMeta };
+  }
+
+  if(type === "product"){
+    const map = {};
+    allItems.forEach(i => {
+      const k = i.code;
+      if(!map[k]) map[k] = { name:i.name, code:i.code, qty:0, revenue:0 };
+      map[k].qty += i.qty;
+      map[k].revenue += i.price * i.qty;
+    });
+    const headers = [t("thCode"), t("colProduct"), t("colQtySold"), t("colRevenue")];
+    const rows = Object.values(map)
+      .sort((a,b) => b.revenue - a.revenue)
+      .map(v => [v.code, v.name, v.qty, v.revenue.toFixed(2)]);
+    const foot = [t("total"), "", totalItems, totalRevenue.toFixed(2)];
+    return { key:type, title: t("reportTitleProduct"), subtitle: periodLabel,
+      headers, rows, foot,
+      kpis:[
+        { cls:"g", lbl:t("kpiRevenue"), val: money(totalRevenue) },
+        { cls:"p", lbl:t("kpiItems"), val: totalItems },
+        { cls:"", lbl:t("kpiProducts"), val: Object.keys(map).length }
+      ],
+      metaLines: baseMeta };
+  }
+
+  if(type === "customer"){
+    const map = {};
+    sales.forEach(s => {
+      const k = (s.customer || "").trim() || (db.lang === "ar" ? "عميل نقدي" : "Walk-in");
+      if(!map[k]) map[k] = { name:k, orders:0, revenue:0, last:s.date };
+      map[k].orders++;
+      map[k].revenue += s.total;
+      if(s.date > map[k].last) map[k].last = s.date;
+    });
+    const headers = [t("colCustomer"), t("colOrders"), t("colRevenue"), t("colLast")];
+    const rows = Object.values(map)
+      .sort((a,b) => b.revenue - a.revenue)
+      .map(v => [v.name, v.orders, v.revenue.toFixed(2), fmtDate(v.last)]);
+    const foot = [t("total"), sales.length, totalRevenue.toFixed(2), ""];
+    return { key:type, title: t("reportTitleCustomer"), subtitle: periodLabel,
+      headers, rows, foot,
+      kpis:[
+        { cls:"", lbl:t("kpiCustomers"), val: Object.keys(map).length },
+        { cls:"g", lbl:t("kpiRevenue"), val: money(totalRevenue) },
+        { cls:"y", lbl:t("kpiAvg"), val: money(avg) }
+      ],
+      metaLines: baseMeta };
+  }
+
+  // profit
+  let totalCost = 0;
+  allItems.forEach(i => {
+    const p = db.products.find(x => x.id === i.productId || x.code === i.code);
+    const cost = p && p.cost != null ? Number(p.cost) : (Number(i.price) * 0.7);
+    totalCost += cost * i.qty;
+  });
+  const profit = totalRevenue - totalCost;
+
+  const byDate = {};
+  sales.forEach(s => { byDate[s.date] = (byDate[s.date] || 0) + s.total; });
+  const headers = [t("colDate"), t("colInvoices"), t("colRevenue")];
+  const rows = Object.keys(byDate).sort().map(d => [
+    fmtDate(d),
+    sales.filter(s => s.date === d).length,
+    byDate[d].toFixed(2)
+  ]);
+  const foot = [t("total"), sales.length, totalRevenue.toFixed(2)];
+
+  return { key:type, title: t("reportTitleProfit"), subtitle: periodLabel,
+    headers, rows, foot,
+    kpis:[
+      { cls:"g", lbl:t("kpiRevenue"), val: money(totalRevenue) },
+      { cls:"p", lbl:t("kpiProfit"), val: money(profit) },
+      { cls:"", lbl:t("kpiSales"), val: sales.length },
+      { cls:"y", lbl:t("kpiItems"), val: totalItems },
+      { cls:"r", lbl:t("kpiProducts"), val: db.products.length }
+    ],
+    metaLines: baseMeta };
+}
+
+function runReport(){
+  const type = $("#repType").value;
+  const rep = buildReport(type);
+  currentReport = rep;
+
+  $("#repResultCard").hidden = false;
+  $("#repTitle").textContent = rep.title;
+  $("#repSubtitle").textContent = rep.subtitle || "";
+
+  $("#repKpis").innerHTML = (rep.kpis || []).map(k => `
+    <div class="kpi ${k.cls || ""}">
+      <div class="lbl">${esc(k.lbl)}</div>
+      <div class="val">${esc(String(k.val))}</div>
+    </div>`).join("");
+
+  let html = "";
+  if(!rep.rows.length){
+    html = `<p class="empty">${t("noData")}</p>`;
+  }else{
+    html += `<table class="rep-table"><thead><tr>${rep.headers.map(h => `<th>${esc(h)}</th>`).join("")}</tr></thead><tbody>`;
+    html += rep.rows.map(r => "<tr>" + r.map(c => `<td>${esc(c)}</td>`).join("") + "</tr>").join("");
+    html += "</tbody>";
+    if(rep.foot) html += `<tfoot><tr>${rep.foot.map(c => `<td>${esc(c)}</td>`).join("")}</tr></tfoot>`;
+    html += "</table>";
+
+    if(rep.detail && rep.detail.rows.length){
+      html += `<h4 style="margin:20px 0 8px;font-size:14px">${esc(t("invoiceNo"))}</h4>`;
+      html += `<table class="rep-table"><thead><tr>${rep.detail.headers.map(h => `<th>${esc(h)}</th>`).join("")}</tr></thead><tbody>`;
+      html += rep.detail.rows.map(r => "<tr>" + r.map(c => `<td>${esc(c)}</td>`).join("") + "</tr>").join("");
+      html += "</tbody></table>";
+    }
+  }
+  $("#repTableWrap").innerHTML = html;
+  toast(t("reportReady"));
+}
+
+$("#repRunBtn").addEventListener("click", runReport);
+$("#repTodayBtn").addEventListener("click", () => {
+  const d = todayISO(); $("#repFrom").value = d; $("#repTo").value = d; runReport();
+});
+$("#repWeekBtn").addEventListener("click", () => {
+  const now = new Date();
+  const day = now.getDay();
+  const start = new Date(now); start.setDate(now.getDate() - day);
+  const end = new Date(start); end.setDate(start.getDate() + 6);
+  $("#repFrom").value = new Date(start.getTime() - start.getTimezoneOffset()*60000).toISOString().slice(0,10);
+  $("#repTo").value   = new Date(end.getTime()   - end.getTimezoneOffset()*60000).toISOString().slice(0,10);
+  runReport();
+});
+$("#repMonthBtn").addEventListener("click", () => {
+  const now = new Date();
+  const first = new Date(now.getFullYear(), now.getMonth(), 1);
+  const last  = new Date(now.getFullYear(), now.getMonth() + 1, 0);
+  $("#repFrom").value = new Date(first.getTime() - first.getTimezoneOffset()*60000).toISOString().slice(0,10);
+  $("#repTo").value   = new Date(last.getTime()  - last.getTimezoneOffset()*60000).toISOString().slice(0,10);
+  runReport();
+});
+$("#repAllBtn").addEventListener("click", () => {
+  $("#repFrom").value = ""; $("#repTo").value = ""; runReport();
+});
+
+$("#repExcelBtn").addEventListener("click", async () => {
+  if(!currentReport) return;
+  const r = currentReport;
+  const fn = `SmartMarket_${r.key}_${todayISO()}.xls`;
+  await exportExcel(fn, r.key, r.title, r.headers, r.rows, r.foot, r.metaLines);
+  toast(t("exported"));
+});
+$("#repPrintBtn").addEventListener("click", () => {
+  if(!currentReport) return;
+  printReport(currentReport);
+});
+$("#repPdfBtn").addEventListener("click", () => {
+  if(!currentReport) return;
+  toast(t("exportPdf") + " → " + (db.lang === "ar" ? "اختر «حفظ كـ PDF»" : "Choose 'Save as PDF'"), "warn");
+  setTimeout(() => printReport(currentReport), 600);
+});
+
+function printReport(r){
+  const tableHead = r.headers.map(h => `<th>${esc(h)}</th>`).join("");
+  const tableBody = r.rows.map(row => "<tr>" + row.map(c => `<td>${esc(c)}</td>`).join("") + "</tr>").join("");
+  const tableFoot = r.foot ? "<tfoot><tr>" + r.foot.map(c => `<td>${esc(c)}</td>`).join("") + "</tr></tfoot>" : "";
+  const kpiHTML = (r.kpis||[]).map(k => `<div class="rp-kpi">${esc(k.lbl)}<b>${esc(String(k.val))}</b></div>`).join("");
+  const detailHTML = (r.detail && r.detail.rows.length) ? `
+    <h3 style="margin:22px 0 8px">${esc(t("invoiceNo"))}</h3>
+    <table><thead><tr>${r.detail.headers.map(h => `<th>${esc(h)}</th>`).join("")}</tr></thead>
+    <tbody>${r.detail.rows.map(row => "<tr>" + row.map(c => `<td>${esc(c)}</td>`).join("") + "</tr>").join("")}</tbody></table>` : "";
+
+  printHTML(`
+    <div class="report-print" dir="${db.lang === "ar" ? "rtl" : "ltr"}">
+      ${reportPrintHeader(r.title, r.subtitle, r.metaLines)}
+      <div class="rp-kpis">${kpiHTML}</div>
+      <table>
+        <thead><tr>${tableHead}</tr></thead>
+        <tbody>${tableBody}</tbody>
+        ${tableFoot}
+      </table>
+      ${detailHTML}
+      <p class="r-foot">${esc(db.storeName || t("appName"))} — ${fmtDateTime(Date.now())}</p>
+    </div>`);
+}
+
+/* =========================================================
+   19) BACKUP / RESTORE / EOD
+   ========================================================= */
+function backupPayload(){
+  return {
+    app: "Smart Market",
+    version: 2,
+    exportedAt: new Date().toISOString(),
+    storeName: db.storeName,
+    data: {
+      lang: db.lang, currency: db.currency, storeName: db.storeName, storePhone: db.storePhone,
+      invoiceCounter: db.invoiceCounter,
+      categories: db.categories, products: db.products,
+      sales: db.sales, log: db.log, settings: db.settings
+    }
+  };
+}
+function addBackupRecord(type, size, dest){
+  db.backups.unshift({ id: uid(), ts: Date.now(), type, size, dest });
+  if(db.backups.length > 200) db.backups.length = 200;
+}
+function renderBackups(){
+  const body = $("#backupBody");
+  if(!body) return;
+  if(!db.backups.length){
+    body.innerHTML = `<tr><td colspan="5" class="empty">${t("noBackups")}</td></tr>`;
+    return;
+  }
+  body.innerHTML = db.backups.map(b => `
+    <tr>
+      <td>${esc(fmtDateTime(b.ts))}</td>
+      <td><span class="badge ${b.type === "auto" ? "green" : b.type === "eod" ? "purple" : ""}">${
+        b.type === "auto" ? t("bkpAuto") : b.type === "eod" ? t("bkpEod") : t("bkpManual")
+      }</span></td>
+      <td>${esc(bytesFmt(b.size))}</td>
+      <td>${b.dest === "folder" ? "📁 " + t("destFolder") : "⬇ " + t("destDownload")}</td>
+      <td class="actions">
+        <button class="icon-btn danger" data-del-bkp="${b.id}">✕</button>
+      </td>
+    </tr>`).join("");
+}
+$("#backupBody").addEventListener("click", e => {
+  const d = e.target.closest("[data-del-bkp]");
+  if(d){ db.backups = db.backups.filter(x => x.id !== d.dataset.delBkp); saveDB(); renderBackups(); }
+});
+
+async function createBackup(type){
+  try{
+    const payload = backupPayload();
+    const json = JSON.stringify(payload, null, 2);
+    const stamp = new Date().toISOString().replace(/[:.]/g,"-").slice(0,19);
+    const filename = `SmartMarket_Backup_${stamp}.json`;
+    const wrote = await saveFile(filename, json, "application/json");
+    const size = new Blob([json]).size;
+
+    addBackupRecord(type || "manual", size, wrote ? "folder" : "download");
+    logActivity("bak",
+      `نسخة احتياطية (${type === "auto" ? "تلقائي" : "يدوي"}) — ${filename} — ${bytesFmt(size)}`,
+      `Backup (${type === "auto" ? "auto" : "manual"}) — ${filename} — ${bytesFmt(size)}`);
+    saveDB(); renderBackups();
+    toast(t("backupDone"));
+    return true;
+  }catch(e){
+    toast(t("backupFail"), "error");
+    return false;
+  }
+}
+$("#backupNowBtn").addEventListener("click", () => createBackup("manual"));
+$("#backupExportBtn").addEventListener("click", () => createBackup("manual"));
+
+$("#restoreBtn").addEventListener("click", () => {
+  const f = $("#restoreFile").files[0];
+  if(!f) return toast(t("fillRequired"), "error");
+  const reader = new FileReader();
+  reader.onload = () => {
+    try{
+      const p = JSON.parse(reader.result);
+      const d = p.data || p;
+      if(!d.products || !d.categories) throw new Error("bad");
+      db.categories = d.categories || [];
+      db.products   = d.products   || [];
+      db.sales      = d.sales      || [];
+      db.log        = d.log        || [];
+      db.settings   = Object.assign(db.settings, d.settings || {});
+      db.invoiceCounter = d.invoiceCounter || db.invoiceCounter;
+      if(d.currency) db.currency = d.currency;
+      if(d.storeName) db.storeName = d.storeName;
+      if(d.storePhone) db.storePhone = d.storePhone;
+      if(d.lang) db.lang = d.lang;
+
+      logActivity("bak", `استعادة نسخة احتياطية من ${f.name}`, `Backup restored from ${f.name}`);
+      addBackupRecord("restore", f.size, "download");
+      saveDB();
+      applyLang(); renderAll(); renderBackups();
+      toast(t("restoreDone"));
+    }catch(e){ toast(t("restoreFail"), "error"); }
+  };
+  reader.readAsText(f);
+});
+
+async function eodExport(dateISO, formats){
+  const sales = db.sales.filter(s => s.date === dateISO);
+  const revenue = sales.reduce((s, x) => s + x.total, 0);
+  const items = sales.reduce((s, x) => s + x.items.reduce((a,i) => a + i.qty, 0), 0);
+
+  const results = [];
+  const base = `SmartMarket_EOD_${dateISO}`;
+
+  if(formats.includes("excel")){
+    const headers = ["#", t("invoiceNo"), t("colCustomer"), t("thItems"), t("total")];
+    const rows = sales.map((s, i) => [i+1, s.no, s.customer || "-", s.items.length, s.total.toFixed(2)]);
+    const foot = [t("total"), "", "", items, revenue.toFixed(2)];
+    const ok = await exportExcel(
+      base + ".xls", "EOD", `${t("reportTitleDaily")} — ${fmtDate(dateISO)}`,
+      headers, rows, foot,
+      [`${t("rpGenerated")}: ${fmtDateTime(Date.now())}`,
+       `${t("kpiSales")}: ${sales.length}`, `${t("kpiRevenue")}: ${money(revenue)}`]
+    );
+    results.push({ fmt:"excel", ok });
+  }
+
+  if(formats.includes("pdf")){
+    const headers = ["#", t("invoiceNo"), t("colCustomer"), t("thItems"), t("total")];
+    const rows = sales.map((s, i) => [i+1, s.no, s.customer || "-", s.items.length, s.total.toFixed(2)]);
+    const tableBody = rows.map(r => "<tr>" + r.map(c => `<td>${esc(c)}</td>`).join("") + "</tr>").join("");
+    const detail = sales.flatMap(s => s.items.map(it => `
+      <tr><td>${esc(s.no)}</td><td>${esc(it.code)}</td><td>${esc(it.name)}</td>
+      <td>${it.qty}</td><td>${money(it.price)}</td><td>${money(it.price*it.qty)}</td></tr>`)).join("");
+
+    const html = `\uFEFF<!DOCTYPE html><html dir="${db.lang === "ar" ? "rtl" : "ltr"}" lang="${db.lang}">
+<head><meta charset="UTF-8"><title>${esc(base)}</title>
+<style>
+@page{margin:12mm}
+body{font-family:"Segoe UI",Tahoma,sans-serif;color:#000;padding:20px}
+h1{font-size:22px;margin:0 0 4px}
+.head{text-align:center;border-bottom:2px solid #000;padding-bottom:10px;margin-bottom:14px}
+.meta{display:flex;flex-wrap:wrap;gap:6px 26px;font-size:12.5px;margin-bottom:14px}
+.kpis{display:flex;gap:14px;flex-wrap:wrap;margin:14px 0}
+.kpi{border:1px solid #000;border-radius:6px;padding:8px 16px;font-size:12.5px}
+.kpi b{display:block;font-size:17px;margin-top:4px}
+table{width:100%;border-collapse:collapse;font-size:12.5px;margin-bottom:16px}
+th,td{border:1px solid #000;padding:6px 8px;text-align:start}
+th{background:#e8e8e8}
+tfoot td{font-weight:bold;background:#f0f0f0}
+h3{margin:18px 0 8px;font-size:15px}
+.foot{text-align:center;font-size:11px;color:#666;margin-top:20px}
+@media print{button{display:none}}
+.printbtn{position:fixed;top:14px;inset-inline-end:14px;padding:10px 18px;border:none;border-radius:8px;
+  background:#2563eb;color:#fff;font-weight:700;cursor:pointer;font-family:inherit;font-size:14px}
+</style></head>
+<body>
+  <button class="printbtn" onclick="window.print()">🖨 ${db.lang === "ar" ? "طباعة / حفظ PDF" : "Print / Save PDF"}</button>
+  <div class="head">
+    <h1>${esc(db.storeName || t("appName"))}</h1>
+    <div>${esc(t("tagline"))}</div>
+    ${db.storePhone ? `<div>☎ ${esc(db.storePhone)}</div>` : ""}
+  </div>
+  <h2 style="font-size:17px;margin:0 0 4px">${esc(t("reportTitleDaily"))}</h2>
+  <div style="font-size:12.5px;color:#555">${fmtDate(dateISO)}</div>
+  <div class="meta"><div>${t("rpGenerated")}: ${fmtDateTime(Date.now())}</div></div>
+  <div class="kpis">
+    <div class="kpi">${t("kpiSales")}<b>${sales.length}</b></div>
+    <div class="kpi">${t("kpiRevenue")}<b>${money(revenue)}</b></div>
+    <div class="kpi">${t("kpiItems")}<b>${items}</b></div>
+    <div class="kpi">${t("kpiAvg")}<b>${money(sales.length ? revenue/sales.length : 0)}</b></div>
+  </div>
+  <h3>${t("invoiceNo")}</h3>
+  <table><thead><tr>${headers.map(h => `<th>${esc(h)}</th>`).join("")}</tr></thead>
+  <tbody>${tableBody}</tbody>
+  <tfoot><tr><td>${t("total")}</td><td></td><td></td><td>${items}</td><td>${money(revenue)}</td></tr></tfoot>
+  </table>
+  ${detail ? `<h3>${t("thItems")}</h3>
+  <table><thead><tr><th>${t("invoiceNo")}</th><th>${t("thCode")}</th><th>${t("thName")}</th>
+  <th>${t("qty")}</th><th>${t("price")}</th><th>${t("thTotal")}</th></tr></thead>
+  <tbody>${detail}</tbody></table>` : ""}
+  <div class="foot">${esc(db.storeName || t("appName"))} — ${fmtDateTime(Date.now())}</div>
+  <script>window.addEventListener('load',function(){setTimeout(function(){window.print()},400)})<\/script>
+</body></html>`;
+
+    const wrote = await saveFile(base + ".html", html, "text/html;charset=utf-8");
+    results.push({ fmt:"pdf", ok:wrote });
+    const w = window.open("", "_blank");
+    if(w){ w.document.write(html); w.document.close(); }
+  }
+
+  const wroteAny = results.some(r => r.ok);
+  addBackupRecord("eod", new Blob([JSON.stringify(sales)]).size, wroteAny ? "folder" : "download");
+  logActivity("bak",
+    `تصدير نهاية اليوم ${fmtDate(dateISO)} — ${sales.length} فاتورة — ${money(revenue)}`,
+    `End-of-day export ${fmtDate(dateISO)} — ${sales.length} invoices — ${money(revenue)}`);
+  db.settings.lastEod = dateISO;
+  saveDB(); renderBackups();
+
+  toast(t("exported") + (wroteAny ? " 📁" : " ⬇"), wroteAny ? "ok" : "warn");
+  return results;
+}
+
+$("#eodExcelBtn").addEventListener("click", () => eodExport($("#eodDate").value || todayISO(), ["excel"]));
+$("#eodPdfBtn").addEventListener("click", () => eodExport($("#eodDate").value || todayISO(), ["pdf"]));
+$("#eodBothBtn").addEventListener("click", () => eodExport($("#eodDate").value || todayISO(), ["excel","pdf"]));
+$("#autoEod").addEventListener("change", e => {
+  db.settings.autoEod = e.target.checked;
+  saveDB();
+  logActivity("sys", `تصدير نهاية اليوم التلقائي: ${e.target.checked ? "مفعّل" : "معطّل"}`,
+              `Auto end-of-day export: ${e.target.checked ? "enabled" : "disabled"}`);
+  toast(t("saved"));
+});
+
+function checkAutoEod(){
+  if(!db.settings.autoEod) return;
+  const today = todayISO();
+  if(db.settings.lastEod === today) return;
+  const has = db.sales.some(s => s.date === today);
+  if(has) setTimeout(() => eodExport(today, ["excel"]), 1500);
+}
+
+/* =========================================================
+   20) SETTINGS MODAL
+   ========================================================= */
+function openSettings(){
+  $("#setLang").value = db.lang;
+  $("#setCurrency").value = db.currency || "";
+  $("#setStoreName").value = db.storeName || "";
+  $("#setStorePhone").value = db.storePhone || "";
+  $("#setMusicOn").checked = !!db.settings.musicOn;
+  $("#setMusicAutostart").checked = !!db.settings.musicAutostart;
+  $("#setVolume").value = db.settings.volume || 45;
+  $("#volLabel").textContent = (db.settings.volume || 45) + "%";
+  updateDirDisplay();
+  $("#settingsModal").classList.add("show");
+}
+function closeSettings(){ $("#settingsModal").classList.remove("show"); }
+
+$("#settingsBtn").addEventListener("click", openSettings);
+$("#settingsClose").addEventListener("click", closeSettings);
+$("#settingsCancel").addEventListener("click", closeSettings);
+$("#settingsModal").addEventListener("click", e => { if(e.target.id === "settingsModal") closeSettings(); });
+
+$("#setVolume").addEventListener("input", e => {
+  $("#volLabel").textContent = e.target.value + "%";
+  setVolume(+e.target.value);
+});
+
+$("#settingsSave").addEventListener("click", () => {
+  const oldLang = db.lang;
+  db.lang = $("#setLang").value;
+  db.currency = $("#setCurrency").value.trim() || db.currency;
+  db.storeName = $("#setStoreName").value.trim() || db.storeName;
+  db.storePhone = $("#setStorePhone").value.trim();
+  db.settings.musicOn = $("#setMusicOn").checked;
+  db.settings.musicAutostart = $("#setMusicAutostart").checked;
+  db.settings.volume = +$("#setVolume").value;
+  setVolume(db.settings.volume);
+
+  if(!db.settings.musicOn && musicPlaying) stopMusic();
+  else if(db.settings.musicOn && !musicPlaying) startMusic();
+
+  saveDB();
+  logActivity("sys", "تم تحديث الإعدادات", "Settings updated");
+  closeSettings();
+  if(oldLang !== db.lang) applyLang(); else renderAll();
+  toast(t("saved"));
+});
+
+$("#pickDirBtn").addEventListener("click", pickDirectory);
+$("#clearDirBtn").addEventListener("click", async () => {
+  dirHandle = null;
+  try{ await idbDel("dir"); }catch(e){}
+  updateDirDisplay();
+  toast(t("dirCleared"));
+});
+$("#testDirBtn").addEventListener("click", async () => {
+  if(!dirHandle) return toast(t("noDir"), "warn");
+  const ok = await writeToFolder("smartmarket_test.txt", "Smart Market write test — " + new Date().toISOString(), "text/plain");
+  toast(ok ? t("writeOk") : t("writeFail"), ok ? "ok" : "error");
+  if(ok) logActivity("bak", "اختبار الكتابة في مجلد التخزين ناجح", "Storage folder write test passed");
+});
+
+$("#resetAllBtn").addEventListener("click", () => {
+  if(!confirm(t("confirmReset"))) return;
+  localStorage.removeItem(LS_KEY);
+  localStorage.removeItem("smartMarket.v1");
+  db = defaultDB();
+  saveDB();
+  applyLang(); renderAll(); renderBackups();
+  closeSettings();
+  toast(t("resetDone"));
+});
+
+/* =========================================================
+   21) RENDER ALL
+   ========================================================= */
+function renderAll(){
+  if(!db) return;
+  renderCategories();
+  renderCategorySelects();
+  renderProducts();
+  renderHistory();
+  renderLog();
+  renderBackups();
+  if($("#pSaveBtn")) $("#pSaveBtn").textContent = editingProductId ? t("updateProduct") : t("addProduct");
+  if($("#catSaveBtn")) $("#catSaveBtn").textContent = editingCategoryId ? t("updateCategory") : t("addCategory");
+  if($("#invNo")) $("#invNo").value = invoiceNumber();
+  renderInvoice();
+  updateSalePreview();
+  updateDirDisplay();
+  updateMusicBtn();
+  const ae = $("#autoEod");
+  if(ae) ae.checked = !!db.settings.autoEod;
+}
+
+/* =========================================================
+   22) INIT
+   ========================================================= */
+(async function init(){
+  loadDB();
+
+  const now = new Date();
+  const first = new Date(now.getFullYear(), now.getMonth(), 1);
+  const last  = new Date(now.getFullYear(), now.getMonth() + 1, 0);
+  $("#repFrom").value = new Date(first.getTime() - first.getTimezoneOffset()*60000).toISOString().slice(0,10);
+  $("#repTo").value   = new Date(last.getTime()  - last.getTimezoneOffset()*60000).toISOString().slice(0,10);
+
+  $("#saleDate").value = todayISO();
+  $("#eodDate").value  = todayISO();
+  $("#setVolume").value = db.settings.volume || 45;
+  $("#volLabel").textContent = (db.settings.volume || 45) + "%";
+
+  await restoreDirHandle();
+
+  applyLang();
+  startInvoice();
+  renderAll();
+
+  setInterval(checkAutoEod, 10 * 60 * 1000);
+})();
+</script>
+</body>
+</html>
